@@ -1,0 +1,28 @@
+import scala.collection.mutable.HashMap
+val charMap:HashMap[String, String] = HashMap[String, String]() 
+val s="egg"
+var t="add"
+
+def isoMorphicCheck(s:String, t:String) : Boolean ={
+  if(s.length != t.length){
+    false
+  }
+  
+  // If strings have same length
+  else{ 
+    for(i <- 0 to s.length-1){
+      
+      // Add (key,value) entry in map for each char in "t"
+      if(!charMap.contains(t.charAt(i).toString)){ 
+            charMap += (t.charAt(i).toString -> s.charAt(i).toString)          
+      }
+      
+      else {
+        if(!charMap.get(t.charAt(i).toString).equals(s.charAt(i).toString)) false
+      }
+      true
+    } 
+  }
+}
+
+isoMorphicCheck("aab", "xyy")
