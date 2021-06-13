@@ -1,0 +1,22 @@
+//Can test it on https://scastie.scala-lang.org/ywSaOwyHRJCoGe5G7LpsSA
+//Good to manage symbol and spaces with while loop
+
+val rows=5
+for(i <- 0 to rows-1){
+
+  // Manage Spaces
+  var spaceIterator = 0
+  while(spaceIterator < (rows-1-i)){
+    print(s" ")
+    spaceIterator =  spaceIterator + 1
+  }
+  
+  //Manage * symbols
+  var starIterator = 0
+  while(starIterator <= i){
+    print(s"*")
+    starIterator =  starIterator + 1
+  }
+  println()
+  
+}
