@@ -1,0 +1,35 @@
+import scala.util.control.Breaks._
+
+for (i <- 1 to 5) {
+  breakable {
+    if (i != 3) println(i)
+    else break
+  }
+}
+println("Statement after loop")
+
+
+Outcome:
+1
+2
+4
+5
+Statement after loop
+
+==========================================================================================================================================
+==========================================================================================================================================
+
+import scala.util.control.Breaks._
+
+//Here we are breaking entite for loop instead of iteration. break condition will take us out of loop.
+breakable {
+for (i <- 1 to 5) {
+    if (i != 3) println(i)
+    else break
+  }
+}
+println("Statement after loop")
+
+1
+2
+Statement after loop
