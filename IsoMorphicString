@@ -1,28 +1,47 @@
-import scala.collection.mutable.HashMap
-val charMap:HashMap[String, String] = HashMap[String, String]() 
-val s="egg"
-var t="add"
+        import scala.collection.mutable.HashMap
+        import util.control.Breaks._
 
-def isoMorphicCheck(s:String, t:String) : Boolean ={
-  if(s.length != t.length){
-    false
-  }
-  
-  // If strings have same length
-  else{ 
-    for(i <- 0 to s.length-1){
-      
-      // Add (key,value) entry in map for each char in "t"
-      if(!charMap.contains(t.charAt(i).toString)){ 
-            charMap += (t.charAt(i).toString -> s.charAt(i).toString)          
-      }
-      
-      else {
-        if(!charMap.get(t.charAt(i).toString).equals(s.charAt(i).toString)) false
-      }
-      true
-    } 
-  }
-}
+        object Solution {
 
-isoMorphicCheck("aab", "xyy")
+        val charMap:HashMap[String, String] = HashMap[String, String]() 
+        var checkFlag:Boolean = true
+
+        def isIsomorphic(s: String, t: String): Boolean = {
+        if((s.isEmpty || t.isEmpty) || (s.length != t.length)){
+        checkFlag=false
+        checkFlag
+        }
+
+        // If strings have same length
+        else{
+        breakable{
+        for(i <- 0 to s.length-1){
+        var key=t.charAt(i).toString
+        var value=s.charAt(i).toString
+
+        // Add (key,value) entry in map for each char in "t" if its not present already
+        if(!charMap.isEmpty){        
+        // Check if key already exists
+        if(!(charMap.contains(key))){
+        charMap += (key -> value)  
+        // If its last char, then return true, Yay! Its isomorphic strings
+        if(i == s.length-1){
+        checkFlag=true
+        print(checkFlag)
+        }
+        }else { 
+        if(!(charMap(key).equals(value))) {
+        checkFlag=false
+        break  
+        }
+        }
+        } else {
+        println("Map is empty")
+        charMap += (key -> value) 
+        }
+        }
+        }
+        checkFlag
+        }
+        }
+        }
