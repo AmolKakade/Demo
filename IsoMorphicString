@@ -1,47 +1,47 @@
-        import scala.collection.mutable.HashMap
-        import util.control.Breaks._
+import scala.collection.mutable.HashMap
+import util.control.Breaks._
 
-        object Solution {
+object Solution {
 
-        val charMap:HashMap[String, String] = HashMap[String, String]() 
-        var checkFlag:Boolean = true
+  val charMap: HashMap[String, String] = HashMap[String, String]()
+  var checkFlag: Boolean = true
 
-        def isIsomorphic(s: String, t: String): Boolean = {
-        if((s.isEmpty || t.isEmpty) || (s.length != t.length)){
-        checkFlag=false
-        checkFlag
-        }
+  def isIsomorphic(s: String, t: String): Boolean = {
+    if ((s.isEmpty || t.isEmpty) || (s.length != t.length)) {
+      checkFlag = false
+      checkFlag
+    }
 
-        // If strings have same length
-        else{
-        breakable{
-        for(i <- 0 to s.length-1){
-        var key=t.charAt(i).toString
-        var value=s.charAt(i).toString
+    // If strings have same length
+    else {
+      breakable {
+        for (i <- 0 to s.length - 1) {
+          var key = t.charAt(i).toString
+          var value = s.charAt(i).toString
 
-        // Add (key,value) entry in map for each char in "t" if its not present already
-        if(!charMap.isEmpty){        
-        // Check if key already exists
-        if(!(charMap.contains(key))){
-        charMap += (key -> value)  
-        // If its last char, then return true, Yay! Its isomorphic strings
-        if(i == s.length-1){
-        checkFlag=true
-        print(checkFlag)
+          // Add (key,value) entry in map for each char in "t" if its not present already
+          if (!charMap.isEmpty) {
+            // Check if key already exists
+            if (!(charMap.contains(key))) {
+              charMap += (key -> value)
+              // If its last char, then return true, Yay! Its isomorphic strings
+              if (i == s.length - 1) {
+                checkFlag = true
+                print(checkFlag)
+              }
+            } else {
+              if (!(charMap(key).equals(value))) {
+                checkFlag = false
+                break
+              }
+            }
+          } else {
+            println("Map is empty")
+            charMap += (key -> value)
+          }
         }
-        }else { 
-        if(!(charMap(key).equals(value))) {
-        checkFlag=false
-        break  
-        }
-        }
-        } else {
-        println("Map is empty")
-        charMap += (key -> value) 
-        }
-        }
-        }
-        checkFlag
-        }
-        }
-        }
+      }
+      checkFlag
+    }
+  }
+}
