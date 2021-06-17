@@ -1,0 +1,46 @@
+Overriding vs Overloading
+========================================================================================================================================================
+1. In Scala, method overloading supplies us with a property which permits us to define methods of identical name but they have different parameters or data types.
+On other hand method overriding permits us to redefine method body of the super class in the subclass of same name and same parameters or data types in order 
+to alter the performance of the method.
+
+2. In Scala, method overriding uses override modifier/keyword in order to override a method defined in the super class. Here parent child class inheritance is needed.
+whereas, method overloading does not requires any keyword or modifier
+
+3. For method overloading we just need to change; 
+  - the order of the parameters used OR
+  - the number of the parameters of the method OR
+  - the data types of the parameters for method overloading.
+  - RETURN TYPE do not play any role in overloading. We cannot have overriden method with name, same # of params with only difference in return type
+  
+class B{
+  def A() ={}                                // Empty methods
+  def A(a:String) ={                         // Concrete method
+    println("Print from method C")
+  }
+  def A(a:String): Int ={                    // THIS IS NOT allowed as only return type is different
+    println("Print from method C")
+    10
+  }
+  def A(a:String, b:String) : Int ={         // Overloaded method
+    println("Print from method C")
+    10
+  }
+}
+
+========================================================================================================================================================
+Overriding
+Overriding in scala is applicable to both Variable as well as methods and each have different rule
+
+Variable overriding
+Rules
+1. In scala, you can override only those variables which are declared by using val keyword in both classes.
+
+Method overriding
+Rules for Method Overriding
+1. Method overriding happens for parent-child class hierarchy
+2. For method overriding, crucial rule is class which is overriding method needs to utilize the modifier override or override annotation.
+3. Auxiliary constructors are not able to call the super-class constructors immediately. They can hardly call the primary constructors which in reversal will call the super-class constructor.
+4. In Method Overriding, we won’t be able to override a var with a def or val, otherwise it throws an error.
+    Here, we won’t be able to override a val in the super-class by a var or def in the subclass, and if the var in the super-class is abstract then we can override it in the subclass.
+    If a field is stated var then it can override the def which is defined in the super-class. The var can only override a getter or setter combination in the super-class.
