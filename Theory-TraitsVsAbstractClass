@@ -1,0 +1,28 @@
+Trait 	
+
+Trait can have:
+- Member variable - var or val
+- Concrete method - Methods which are fully implemented
+- abstract method - Methods which just declared
+
+1. Traits do not have a constructor.
+2. A trait can be added to Object Instance.
+3. MULTIPLE Inheritance : A Class can extend multiple traits.
+4. If Trait have only ab classes are interoperable with Java. We can directlt use them there.
+5. After compilation Traits are converetd to Java Interfaces
+	
+==================================================================================================================================
+Abstract Class:
+Abstract classes can have
+- Member variable - var or val
+- Concrete method - Methods which are fully implemented
+- abstract method - Methods which just declared
+
+1. Abstract class contain a constructor
+2. A Class can extend only one Abstract class.
+3. We can’t add Abstract Class to Object Instance.
+4. Abstract classes are interoperable with Java. We can directlt use them there.
+5. After compilation Abstract class will be as is.
+
+
+
