@@ -1,0 +1,8 @@
+Scala final keyword is similar to Java.
+
+We can use final modifier for class, method or variable
+
+1. Class - final class cannot be inherited
+2. method - final method cannot override
+3. varibale - final variable(val) cannot override
+
