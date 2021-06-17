@@ -1,3 +1,10 @@
+
+Abstraction::
+1. Abstraction is a process in which we hide complex implementation details and show only functionality to the user.
+2. Trait and Abstract class are both ways to achieve abstraction
+
+----------------------------------------------------------------------------------------------------------------------------------
+
 Trait 	
 
 Trait can have:
@@ -13,7 +20,11 @@ Trait can have:
 	
 ==================================================================================================================================
 Abstract Class:
+
+bstraction is a process in which we hide complex implementation details and show only functionality to the user.
+
 Abstract classes can have
+- abstract keyword is mandotory.
 - Member variable - var or val
 - Concrete method - Methods which are fully implemented
 - abstract method - Methods which just declared
@@ -23,6 +34,3 @@ Abstract classes can have
 3. We can’t add Abstract Class to Object Instance.
 4. Abstract classes are interoperable with Java. We can directlt use them there.
 5. After compilation Abstract class will be as is.
-
-
-
