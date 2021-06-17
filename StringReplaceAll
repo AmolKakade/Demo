@@ -1,0 +1,17 @@
+import scala.collection.mutable.StringBuilder
+    
+    def interpret(command: String): String = {
+        var outcomeString = command
+        var mapObj:Map[String, String] = Map[String, String]()
+        
+        mapObj = Map("G" -> "G", 
+                     "\\(\\)" -> "o",
+                     "\\(al\\)" -> "al")
+      
+      mapObj.foreach(keyIter => outcomeString = outcomeString.replaceAll(keyIter._1,keyIter._2))
+      outcomeString.mkString
+    }
+
+println(interpret(""))
+
+//regexMap.foreach(regexIter => sql = sql.replaceAll(regexIter._1, regexIter._2))
