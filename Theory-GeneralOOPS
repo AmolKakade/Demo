@@ -1,0 +1,79 @@
+Class
+-------------------------------------------------------------------------------------------------------------------------------------
+- Class is a template or a blueprint. 
+- It is also known as collection of objects of similar type.
+- Class can contain:
+    - member variables
+    - member methods
+    - constructor
+    - blocks
+    - nested class etc.
+ 
+ NOTE:- 
+ 1. We have to initialize member variable in class or Singleton Object only. Or else it will treat it as Abstract class. 
+ 2. Only traits and abstract classes can have declared but undefined members
+ Just declaration now allowed and will give error "class B needs to be abstract, since value a is not defined"
+ 
+-Class with primary constructor and Anonymous object
+
+class Student(id:Int, name:String){     // Primary constructor  
+    def show(){  
+        println(id+" "+name)  
+    }  
+}  
+new Student(11,"Amol").show            // Anonymous object
+
+-------------------------------------------------------------------------------------------------------------------------------------
+Object
+-------------------------------------------------------------------------------------------------------------------------------------
+- It is instance of Class
+- Object is a real world entity
+- Object contains;
+      - State: data values of an object are known as its state.
+      - Behavior: functionality that an object performs is known as its behavior.
+
+-------------------------------------------------------------------------------------------------------------------------------------
+Singleton Object
+-------------------------------------------------------------------------------------------------------------------------------------
+- In scala no concept of STATIC
+- Singleton Object provides entry point for application like STATIC MAIN() in JAVA
+- It is object created using OBJECT keyword in scala similar to Scala class
+- Without Singleton Object will not produce any outcome
+
+object A{
+var a=10
+def print() {
+  println(a)
+ }
+ def main(args: Array(String)){
+  print()
+ }
+}
+
+Some important points;
+    - One source file can have multiple Singleton Objects. They can call methods in each other similar to calling static methods in JAVA.
+    - The method in the singleton object is globally accessible.
+    - Instance - Not allowed to create an instance of singleton object.
+    - Primary constructor - Not allowed to pass parameter in the primary constructor of singleton object.
+    - In Scala, a singleton object can extend class and traits.
+    - MAIN method - main method is always present in singleton object.
+    - Instantiation - The method in the singleton object is accessed with the name of the object(just like calling static method in Java), so there is no need to create an object to access this method. 
+
+-------------------------------------------------------------------------------------------------------------------------------------
+Companion Object & Companion Class
+-------------------------------------------------------------------------------------------------------------------------------------
+
+- When you have a class with same name as singleton object, it is called COMPANION CLASS and the COMPANION OBJECT is called companion object.
+- The companion class and its companion object both must be defined in the same source file.
+
+Benefits;
+    - Companion class and Companion object can access each others private members - both member variables and methods
+    - 
+
+
+
+
+
+
+
+
