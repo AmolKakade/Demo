@@ -1,0 +1,12 @@
+Case Class and Apply()
+
+1. Scala provides a special kind of class called the case class
+2. Case class is a simple version of a regular Java class, that is designed to provide a simple set of fields and not much more.
+
+case class Person(name: String, age: Integer, favColor: String)
+
+3. Case classes provide you with an automatically generated apply() function on their companion object that you can use like a constructor. 
+This is very confusing as it looks just like a constructor and quacks like a constructor, but it is not a constructor.
+
+4. In fact, a built-in Scala macro has automatically generated an apply() method to match our case class fields. 
+The constructor still exists, and can be used normally too.
