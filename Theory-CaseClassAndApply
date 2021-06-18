@@ -10,3 +10,6 @@ This is very confusing as it looks just like a constructor and quacks like a con
 
 4. In fact, a built-in Scala macro has automatically generated an apply() method to match our case class fields. 
 The constructor still exists, and can be used normally too.
+
+5. Remember, apply() is just a special function that lets us call the parent object directly, like a function. 
+It has nothing to do with object orientation, classes, or constructors in the slightest.
