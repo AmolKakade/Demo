@@ -1,0 +1,52 @@
+Excellent article :- https://blog.matthewrathbone.com/2017/03/06/scala-object-apply-functions.html
+
+Usage of apply()
+-------------------------------------------------------------------------------------------------------------------------------------
+1. Call object as a method
+
+object Greet {
+ def apply(name: String): String = {
+   s"Hello $name"
+ }
+  def apply(firstName: String, lastName: String): String = {
+   s"Hello $firstName $lastName"
+ }
+}
+println(Greet("Amol"))
+println(Greet("Amol","Kakade"))
+
+
+2. apply() with case classes
+
+-Here it returns the object of Case class. This is beauty of case class. But apply() here does not mean constructiors. We can still have our own costructors.
+
+case class Person(name: String, age: Integer, favColor: String)
+val p0 = new Person("Frank", 23, "Blue")
+p0
+
+
+3. apply() - as a Factory method
+
+
+case class Company(name: String)
+
+class Person() {}
+
+object Person {
+  def apply(name: String): Company = new Company(name)
+}
+
+val c = Person("Bob")
+c // This returns object of Company
+
+
+
+4. apply() - in Scala classes
+
+- Here we are using class Function and calling apply() on it.
+
+val func2 = new Function[String, String] {
+    def apply(x: String) = s"hello ${x}!"
+}
+
+func2("world") // Outcomes => hello world!
