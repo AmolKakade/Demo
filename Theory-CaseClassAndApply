@@ -12,15 +12,18 @@ case class Person(name: String, age: Integer, favColor: String)
 val p0 = Person("Satish","31","Blue")  // Object of type Person
 
 -------OR------(Without Case class)
-class Person(name: String, age: Integer, favColor: String) {}
+class Person(var name: String, var age: Integer, var favColor: String)        
 object Person {
   def apply(name: String, age: Integer, favColor: String): Person = new Person(name, age, favColor)
 }
-val p0 = Person("Bob",30,"Blue") 
+
+val p0 = Person("Bob",30,"Blue")
 p0                                    // Object of type Person
+println(p0.name + "")
 
 NOTE:-
     - p0 is object of type Person in both scenarios
+    - We have to define Person class parameters as VAR or it will not work. VAR makes them mutable, meaning they can be changed.
     - new keyword not needed for object creation
     - Case classes have an apply() method by default which takes care of object construction.
     - Case classes provide you with an automatically generated apply() function on their companion object that you can use like a constructor. 
