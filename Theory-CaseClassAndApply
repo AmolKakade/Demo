@@ -1,15 +1,29 @@
-Case Class and Apply()
+Case Class and usage of apply()
+------------------------------------------------------------------------------------------------------------------------------------------------------
 
-1. Scala provides a special kind of class called the case class
+1. Case classes are good for modeling immutable data. e.g. Person()
 2. Case class is a simple version of a regular Java class, that is designed to provide a simple set of fields and not much more.
+3. A minimal case class requires;
+    - the keywords case class
+    - an identifier( class name)
+    - a parameter list (which may be empty)
 
 case class Person(name: String, age: Integer, favColor: String)
+val p0 = Person("Satish","31","Blue")  // Object of type Person
 
-3. Case classes provide you with an automatically generated apply() function on their companion object that you can use like a constructor. 
-This is very confusing as it looks just like a constructor and quacks like a constructor, but it is not a constructor.
+-------OR------(Without Case class)
+class Person(name: String, age: Integer, favColor: String) {}
+object Person {
+  def apply(name: String, age: Integer, favColor: String): Person = new Person(name, age, favColor)
+}
+val p0 = Person("Bob",30,"Blue") 
+p0                                    // Object of type Person
 
-4. In fact, a built-in Scala macro has automatically generated an apply() method to match our case class fields. 
+NOTE:-
+    - p0 is object of type Person in both scenarios
+    - new keyword not needed for object creation
+    - Case classes have an apply() method by default which takes care of object construction.
+    - Case classes provide you with an automatically generated apply() function on their companion object that you can use like a constructor. 
+    - This is very confusing as it looks just like a constructor and quacks like a constructor, but it is not a constructor.
+    - In fact, a built-in Scala macro has automatically generated an apply() method to match our case class fields. 
 The constructor still exists, and can be used normally too.
-
-5. Remember, apply() is just a special function that lets us call the parent object directly, like a function. 
-It has nothing to do with object orientation, classes, or constructors in the slightest.
