@@ -71,10 +71,127 @@ Benefits;
     - Companion class and Companion object can access each others private members - both member variables and methods
     - 
 
+-------------------------------------------------------------------------------------------------------------------------------------
+Constructores
+-------------------------------------------------------------------------------------------------------------------------------------
+- Constructors are special methods defined within class to instantiate the state of class
+- Constructors will be of 2 types
+        - Primary constructors
+        - Auxilary constructors
+
+Primary Constructor:
+1. When our Scala program contains only one constructor, then that constructor is called a Primary constructor
+2. In Scala, only a primary constructor is allowed to invoke a superclass constructor.
+3. Primary constructor will always have same number of parameters as of class. It can be even no parameters if class don't have any.
+
+NOTE:
+1. If you are defining auxilary constructors in your clsss, you must call Primary constructor explicitly.
+2. If Class do not have any Auxilary Constructors, Scala itself will create and call Primary constructor internally when we create object.
+
+E.g. - 1
+class addition(i : Int)
+{
+	// using this() keyword. This is auxilary constructor.
+	def this(i:Int, j:Int)
+	{
+		this(i)  // This is Primary Constructor. 
+		println(i + " + " + j + " = " + ( i + j ))
+	}
+}
+
+E.g. - 2 // Class without parameters
+class addition
+{
+	// using this() keyword. This is auxilary constructor.
+	def this(i:Int, j:Int)
+	{
+		this()  // This is Primary Constructor. As class do not have any parameters, Primary constructor is also do not have any param. THIS LINE is mandotory. 
+		println(i + " + " + j + " = " + ( i + j ))
+	}
+}
+object A{
+val obj = new addition(10,20)
+}
+
+Auxilary Constructors:
+1. In a single class, we are allowed to create one or more than one auxiliary constructors, but they have different signatures or parameter-lists.
+2. The first statement of the auxiliary constructor must contain this() keyword.
+3. Each auxiliary constructor must call one of the previously defined constructors, this would be primary constructor or previous auxiliary constructor.
+4. The invoke constructor may be a primary or previous auxiliary constructor that comes textually before the calling constructor.
 
 
+E.g. (Ref link : https://www.geeksforgeeks.org/scala-auxiliary-constructor/)
+class Company
+{
+    private var Cname = ""
+    private var Employee = 0
+   
+    // Creating function
+    def show()
+    {
+        println("Language name: " + Cname);
+        println("Total number of employee: " + Employee);
+    }
+ 
+    // An auxiliary constructor
+    def this(Cname: String)
+    {
+        // Calls primary constructor
+        this()
+        this.Cname = Cname
+    }
+ 
+    // Another auxiliary constructor
+    def this(Cname: String, Employee: Int)
+    {
+          // Calls previous auxiliary constructor
+        this(Cname)
+        this.Employee = Employee
+    }
+}
+
+*******LEARNING
+NOTE:
+1. It is not mandotory that number of parameters of class and number of parametrs we pass while creating object of that class should same.
+
+E.g. // ********* Class do not have any parameter.
+
+class addition
+{
+	// using this() keyword
+	def this(i:Int, j:Int)
+	{
+		this()
+		println(i + " + " + j + " = " + ( i + j ))
+	}
+}
+
+object abc
+{
+	// Main method
+	def main(args:Array[String])
+	{
+		var add = new addition(15, 12)   //******** while creating object of addition class, we are passing 2 parameters and that is fine.
+	}
+}
 
 
+- Primary constructore with default values
+E.g. 2 // ********* Class have parameters but not a object. Default values are passed to Primary constructor from class singture only.
 
+class addition(i: Int = 15, j : Int = 12)
+{
+	def show()
+	{
+		println(i + " + " + j + " = " + ( i + j ))
+	}
+}
 
-
+object abc
+{
+	// Main method
+	def main(args:Array[String])
+	{
+		new addition().show()//******** while creating object of addition class, we are NOT passing.
+  }
+}
