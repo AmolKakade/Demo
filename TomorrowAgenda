@@ -1,5 +1,7 @@
 1. General OOPS concepts in scala - Classes, Objects, Singleton objects, Companion objects, Case classes and objects, this etc
-
+2. Sealed Traits, Trait Mixing, Inheritance
+3. Exception Handling
+4. Types of methods
 
 What is Reflection
 Impact of reflection on constructor and apply()
