@@ -1,0 +1,41 @@
+https://www.geeksforgeeks.org/trait-linearization-in-scala/
+Linearization is used to transitive dependencies of classes or Traits such that it will have one parent at the end.
+
+1. The classes reachable through transitive closure of the direct inheritance relation from a class 𝐶 are called the base classes of 𝐶. 
+2. Because of mixins, the inheritance relationship on base classes forms in general a directed acyclic graph.
+
+E.g.
+class C extends C1 with c2 with C3 with C4.... with Cn{
+
+}
+
+Let 𝐶 be a class with template 𝐶1 with ... with 𝐶𝑛 { stats }. The linearization of 𝐶, L(𝐶)
+
+is defined as follows:
+
+L(𝐶)= 𝐶, L(𝐶𝑛) +⃗ ...... +⃗ L(𝐶1)
+
+3. Liniarization starts from RIGHT to LEFT. Here Linearization of Cn is considered first then its left classes/traits.
+
+******
+4.  Even while ceeating object of class dependency can be build, that takes higher priority
+Ref example-2 https://www.geeksforgeeks.org/trait-linearization-in-scala/( here while creating onject with clause is added which takes highest presedence)
+E.g.
+
+class C extends C1 with c2 with C3 with C4.... with Cn{
+
+}
+
+object SingleTonObject extends App{
+val object = new C with Z1 with Z2 with Z3
+
+}
+
+L(𝐶)= 𝐶, L(Z3) +⃗ L(Z2) +⃗ L(Z1) +⃗ L(𝐶𝑛) +⃗ ...... +⃗ L(𝐶1)
+
+5. While solving references, duploicates will be removed from LEFT TO RIGHT. Goal is to cancel left dependency if its present in right in Linear graph.
+
+E.g.
+L(C) = C -> B -> D -> A -> B -> Z -> B -> A -> C -> Z 
+
+Outcome => L(C) = D -> A -> C -> Z ( Cancellation starts from LEFT to RIGHT)
