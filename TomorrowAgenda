@@ -1,5 +1,6 @@
 1. General OOPS concepts in scala - Classes, Objects, Singleton objects, Companion objects, Case classes and objects, this etc
-2. Sealed Traits, Trait Mixing, Inheritance
+2. Inheritance
+Sealed Traits, Enumeration, Trait Mixing, 
 3. Exception Handling
 4. Types of methods
 5. Pattern matching
