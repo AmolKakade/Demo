@@ -11,7 +11,7 @@ Class
     - nested class etc.
  
  NOTE:- 
- 1. We have to initialize member variable in class or Singleton Object only. Or else it will treat it as Abstract class. 
+ 1. We have to initialize member variable in class or Singleton Object only. Or else it will treat it as abtract member and is only allowed in Abstract Class and Trait.
  2. Only traits and abstract classes can have declared but undefined members
  Just declaration now allowed and will give error "class B needs to be abstract, since value a is not defined"
  
