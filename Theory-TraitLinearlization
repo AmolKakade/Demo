@@ -1,6 +1,12 @@
 
-https://www.geeksforgeeks.org/trait-linearization-in-scala/
-Linearization is used to transitive dependencies of classes or Traits such that it will have one parent at the end.
+Ref link: - https://www.geeksforgeeks.org/trait-linearization-in-scala/
+
+	- Scala solves ambiguity of traits/classes by linearization process.
+	- No trait/class is ever repeated in linearization.
+	- Scala uses linearization whenever a new class has been instantiated. Taking all the traits/classes and forming a linear order which points to corresponding super classes/traits thus super method knows its parent method.
+	- These super() method calling is done in a stackable manner.
+	- Linearization may or not be the same as the inherited mixins as they are written.
+	- We cannot explicitly add a class to inheritance when it is already been implicitly inherited in a linearization otherwise it will result in error as inheritance twice.
 
 1. The classes reachable through transitive closure of the direct inheritance relation from a class 𝐶 are called the base classes of 𝐶. 
 2. Because of mixins, the inheritance relationship on base classes forms in general a directed acyclic graph.
