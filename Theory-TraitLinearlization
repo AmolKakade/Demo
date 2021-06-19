@@ -1,3 +1,4 @@
+
 https://www.geeksforgeeks.org/trait-linearization-in-scala/
 Linearization is used to transitive dependencies of classes or Traits such that it will have one parent at the end.
 
