@@ -1,6 +1,7 @@
 Class
 -------------------------------------------------------------------------------------------------------------------------------------
 - Class is a template or a blueprint. 
+- Class/trait/Singleton object name can start with small case letter. It can include underscore character.
 - It is also known as collection of objects of similar type.
 - Class can contain:
     - member variables
