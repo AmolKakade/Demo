@@ -6,4 +6,4 @@
 What is Reflection
 Impact of reflection on constructor and apply()
 
-Pass our own type to class.(Similar to https://github.com/AmolKakade/almaren-framework/blob/master/src/main/scala/com/github/music/of/the/ainur/almaren/Builder.scala)
+Generic Classes => Pass our own type to class.(Similar to https://github.com/AmolKakade/almaren-framework/blob/master/src/main/scala/com/github/music/of/the/ainur/almaren/Builder.scala)
