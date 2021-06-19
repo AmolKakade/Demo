@@ -2,6 +2,7 @@
 2. Sealed Traits, Trait Mixing, Inheritance
 3. Exception Handling
 4. Types of methods
+5. Pattern matching
 
 What is Reflection
 Impact of reflection on constructor and apply()
