@@ -47,3 +47,48 @@ Main Movie Genres = 4
 Main Movie Genres = Thriller
 Main Movie Genres = Thriller1
 Main Movie Genres = Drama
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------
+Sealed : Trait/Abstrct class
+------------------------------------------------------------------------------------------------------------------------------------------------------
+1. Alternative to Enumeration.
+1. A sealed trait/abstract class can be extended only in the same file as its declaration.
+2. Since they can be only extended in a single file, the compiler knows every possible subtypes and can reason about it.
+
+Advantage:
+ 1. As all subtypes are in same file, it allows Scala to do most of checks at compiler time itself.
+ 
+Disadvantage:
+ 1. No way to traverse over
+
+E.g - 1
+sealed abstract class Furniture
+case class Couch() extends Furniture
+case class Chair() extends Furniture
+
+def findPlaceToSit(piece: Furniture): String = piece match {
+  case a: Couch => "Lie on the couch"
+  //case b: Chair => "Sit on the chair"
+}
+
+findPlaceToSit(Couch())
+
+NOTE:
+1. Throws compile time error
+match may not be exhaustive.
+It would fail on the following input: Chair()
+2. We can either go for SEALED TRAIT or SEALED Abstract class as per use. Major difference in abstract class can have parameters while trats cannot.
+
+E.g-2 ( ONLY DIFFERENCE is we declared here as sealed trait. Here it don't make any differece as we are not passing any parameters to Furniture class in E.g-1)
+
+sealed trait Furniture 
+case class Couch() extends Furniture
+case class Chair() extends Furniture
+
+def findPlaceToSit(piece: Furniture): String = piece match {
+  case a: Couch => "Lie on the couch"
+  //case b: Chair => "Sit on the chair"
+}
+
+findPlaceToSit(Couch())
