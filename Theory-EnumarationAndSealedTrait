@@ -92,3 +92,28 @@ def findPlaceToSit(piece: Furniture): String = piece match {
 }
 
 findPlaceToSit(Couch())
+
+------------------------------------------------------------------------------------------------------------------------------------------------------
+case class vs case object
+------------------------------------------------------------------------------------------------------------------------------------------------------
+
+1. Both are ways to do pattern matching
+2. Major difference if case classes can have parameters while case object cannot have.
+3. A case object on the other hand does not take args in the constructor, so there can only be one instance of it (a singleton, like a regular scala object is)
+
+E.g. - Ref link : https://docs.scala-lang.org/tour/pattern-matching.html
+
+abstract class Notification
+case class Email(sender: String, title: String, body: String) extends Notification
+case class SMS(caller: String, message: String) extends Notification
+case class VoiceRecording(contactName: String, link: String) extends Notification
+
+
+E.g -2 ( THIS IS NOT allowed as objects cannot have parameters)
+
+sealed abstract class Notification
+case object Email(sender: String, title: String, body: String) extends Notification
+case object SMS(caller: String, message: String) extends Notification
+case object VoiceRecording(contactName: String, link: String) extends Notification
+
+
