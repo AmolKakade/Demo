@@ -1,0 +1,18 @@
+1. Mixins are traits which are used to compose a class.
+2. The right mixins order of trait is that any class or abstract class which you want to extend, first extend this. 
+3. All the traits will be extended after this class or abstract class.
+
+trait A{
+def A{
+ }
+}
+
+class B{
+def A{
+ }
+}
+
+abstract class C extends B with A{  // This is correct order of mixin
+def A{
+}
+}
