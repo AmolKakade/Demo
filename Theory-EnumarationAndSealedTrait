@@ -8,7 +8,10 @@ Enumeration
 5. Enumeration values are defined as val members of the evaluation.
  - When we extended the Enumeration class, a lot of functions get inherited. ID is one among the them.
  - We can iterate the members.
-
+ 
+ NOTE:
+  - Enumeration objects expects all enums to have the SAME TYPE at runtime.
+val no = Value(-100, 1)  // It expects String and will though error
 
 //Extend Enumeration class. Main class will become of type Enumeration
 object ABC extends Enumeration 
