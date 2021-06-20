@@ -1,0 +1,46 @@
+Enumeration
+------------------------------------------------------------------------------------------------------------------------------------------------
+1. An enumerations serve the purpose of representing a group of, named constants, in a programming language.
+2. We have to extend Scala class called Enumeration
+3. In Scala, there is no enum keyword unlike Java or C.
+4. Every Enumeration constant represents an object of type Enumeration. Elements in Enumeration are ordered by ID and default value start from 0
+5. ID value need not follow any order. It can have negative values too.
+5. Enumeration values are defined as val members of the evaluation.
+ - When we extended the Enumeration class, a lot of functions get inherited. ID is one among the them.
+ - We can iterate the members.
+
+
+//Extend Enumeration class. Main class will become of type Enumeration
+object ABC extends Enumeration 
+{
+    type ABC = Value
+      
+    // Assigning values
+    var first = Value(0, "Thriller")
+    val second = Value("Horror")
+    val third = Value("Comedy")
+    val fourth = Value("Romance")
+    first = Value(4, "Thriller1")  // This value is overriden. To access it we specified id as well
+    val last = Value(10, "Drama")  // No need to follow ordering for ID assignment
+    val no = Value(-100, "No Choice")  // ID value can be negative
+      
+    // Main method
+    def main(args: Array[String])
+    {
+        println(s"Main Movie Genres = ${ABC.values}")  // Elemets are printed as per ascending oredr by ID values
+        println(s"Main Movie Genres = ${ABC.first}")
+        println(s"Main Movie Genres = ${ABC.first.id}")
+        println(s"Main Movie Genres = ${ABC(0)}")
+        println(s"Main Movie Genres = ${ABC(4)}")
+        println(s"Main Movie Genres = ${ABC(10)}")
+    }
+}
+
+Outcome
+---------------------------------
+Main Movie Genres = ABC.ValueSet(No Choice, Thriller, Horror, Comedy, Romance, Thriller1, Drama)
+Main Movie Genres = Thriller1
+Main Movie Genres = 4
+Main Movie Genres = Thriller
+Main Movie Genres = Thriller1
+Main Movie Genres = Drama
