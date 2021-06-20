@@ -73,7 +73,7 @@ Benefits;
     - 
 
 -------------------------------------------------------------------------------------------------------------------------------------
-Constructores
+Constructors
 -------------------------------------------------------------------------------------------------------------------------------------
 - Constructors are special methods defined within class to instantiate the state of class
 - Constructors will be of 2 types
@@ -196,3 +196,12 @@ object abc
 		new addition().show()//******** while creating object of addition class, we are NOT passing.
   }
 }
+
+-------------------------------------------------------------------------------------------------------------------------------------
+Access Modifiers
+-------------------------------------------------------------------------------------------------------------------------------------
+
+Modifier 		Outside package 	Package 	Class 	Subclass 	Companion
+No access modifier 	Yes 			Yes 		Yes 	Yes 		Yes
+Protected 		No 			No 		Yes 	Yes 		Yes
+Private 		No 			No 		Yes 	No 		Yes
