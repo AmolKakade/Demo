@@ -1,5 +1,6 @@
 Need of Exception Handling
-
+--------------------------------------------------------------------------------------------------------------------------------------------------
+E.g.
 var s="AB"
 println(Integer.parseInt(s.trim))
 println("Remainder of code")
@@ -50,8 +51,6 @@ toInt("AB") match {
   case None => println("That didn't work.")
 }
 
-
-
 --------------------------------------------------------------------------------------------------------------------------------------------------
 Exception Handling - Try/Success/Failure Trio classes
 --------------------------------------------------------------------------------------------------------------------------------------------------
@@ -74,3 +73,13 @@ toInt("10") match {
     println(s"Parse operation is successful. Parsed value is $i")
   case Failure(i) => println(s"Parse operation is failed with reason:: $i")
 }
+
+--------------------------------------------------------------------------------------------------------------------------------------------------
+Custom Exception and throw
+--------------------------------------------------------------------------------------------------------------------------------------------------
+1. Use of throw keyword is same of Java
+
+class MyException extends Exception
+val exception = new MyException
+
+throw exception
