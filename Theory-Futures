@@ -1,0 +1,10 @@
+
+
+
+import scala.concurrent._
+import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext.Implicits.global
+val f = Future{ Thread.sleep(10000); 
+               "hello" + 123 + "world" }
+Await.result(f, Duration.Inf)
+println("Futute completed")
