@@ -1,0 +1,65 @@
+Exception Handling - try/catch/finally
+--------------------------------------------------------------------------------------------------------------------------------------------------
+1. An exception is an unwanted or unexpected event, which occurs during the execution of a program i.e at run time.
+2. In scala, All exceptions are unchecked. there is no concept of checked exception Scala.
+3. Like Java, Scala has a try/catch/finally construct to let you catch and manage exceptions. 
+4. The main difference is that for consistency, Scala uses the same syntax that match expressions use: case statements to match the different possible exceptions that can occur.
+
+try {
+  var N = 5 / 0
+} catch {
+  case ex: Exception => {
+    println("Exception occurred.")
+  }
+  // Catch block contain case.
+  case ex: ArithmeticException => {
+    println("Arithmetic Exception occurred.")
+  }
+} finally {
+  // Finally block will execute
+  println("This is final block.")
+}
+
+--------------------------------------------------------------------------------------------------------------------------------------------------
+Exception Handling - Option/Some/None Trio classes
+--------------------------------------------------------------------------------------------------------------------------------------------------
+E.g.
+
+
+def toInt(s: String): Option[Int] = {
+  try {
+    Some(Integer.parseInt(s.trim))
+  } catch {
+    case e: Exception => None
+  }
+}
+
+toInt("AB") match {
+  case Some(i) => println(i)
+  case None => println("That didn't work.")
+}
+
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------
+Exception Handling - Try/Success/Failure Trio classes
+--------------------------------------------------------------------------------------------------------------------------------------------------
+1. Try/Success/Failure needs to handled with case block again Similar to Option/Some/None
+2. We enclose exception handling code in Try {} block
+3. Failure contains the exception.
+4. This is preffered way of Exception Handling
+
+import scala.util.{Try, Success, Failure}
+
+def toInt(s: String): Try[Int] = {
+  Try {
+    Integer.parseInt(s.trim)
+  }
+}
+// def toInt(s: String): Try[Int] = Try(Integer.parseInt(s.trim)) // This is one line definition of same function
+
+toInt("10") match {
+  case Success(i) =>
+    println(s"Parse operation is successful. Parsed value is $i")
+  case Failure(i) => println(s"Parse operation is failed with reason:: $i")
+}
