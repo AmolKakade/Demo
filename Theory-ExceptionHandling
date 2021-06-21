@@ -1,3 +1,14 @@
+Need of Exception Handling
+
+var s="AB"
+println(Integer.parseInt(s.trim))
+println("Remainder of code")
+
+NOTE:
+1. In above code, if it throws exception, there is no way to ensure execution of other code and progrm will come out as soon as Exception occurs
+2. Exception handling helps us to handle those exception and HELPS TO RUN REMAINDER OF CODE AS WELL.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------
 Exception Handling - try/catch/finally
 --------------------------------------------------------------------------------------------------------------------------------------------------
 1. An exception is an unwanted or unexpected event, which occurs during the execution of a program i.e at run time.
