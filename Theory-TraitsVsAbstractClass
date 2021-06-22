@@ -16,13 +16,13 @@ Trait can have:
 2. Traits do not have a constructor.
 3. A trait can be added to Object Instance.
 4. MULTIPLE Inheritance : A Class can extend multiple traits.
-5. If Trait have only ab classes are interoperable with Java. We can directlt use them there.
+5. If Trait have only abstract methods, then such Trait is interoperable with Java. We can directlt use them there.
 6. After compilation Traits are converetd to Java Interfaces
 	
 ==================================================================================================================================
 Abstract Class:
 
-bstraction is a process in which we hide complex implementation details and show only functionality to the user.
+Abstraction is a process in which we hide complex implementation details and show only functionality to the user.
 
 Abstract classes can have
 - abstract keyword is mandotory.
@@ -33,5 +33,5 @@ Abstract classes can have
 1. Abstract class contain a constructor
 2. A Class can extend only one Abstract class.
 3. We can’t add Abstract Class to Object Instance.
-4. Abstract classes are interoperable with Java. We can directlt use them there.
+4. Abstract classes are interoperable with Java. We can directly use them in Java application.
 5. After compilation Abstract class will be as is.
