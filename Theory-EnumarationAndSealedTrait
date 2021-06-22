@@ -53,11 +53,12 @@ Main Movie Genres = Drama
 Sealed : Trait/Abstrct class
 ------------------------------------------------------------------------------------------------------------------------------------------------------
 1. Alternative to Enumeration.
-1. A sealed trait/abstract class can be extended only in the same file as its declaration.
-2. Since they can be only extended in a single file, the compiler knows every possible subtypes and can reason about it.
+2. A sealed trait/abstract class can be extended only in the same file as its declaration.
+3. Since they can be only extended in a single file, the compiler knows every possible subtypes and can reason about it.
 
 Advantage:
  1. As all subtypes are in same file, it allows Scala to do most of checks at compiler time itself.
+ 2. It helps us to do exaustive case/match
  
 Disadvantage:
  1. No way to traverse over
@@ -115,5 +116,4 @@ sealed abstract class Notification
 case object Email(sender: String, title: String, body: String) extends Notification
 case object SMS(caller: String, message: String) extends Notification
 case object VoiceRecording(contactName: String, link: String) extends Notification
-
 
