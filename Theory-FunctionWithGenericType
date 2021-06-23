@@ -1,0 +1,18 @@
+Define a function which can Generic type as agument
+------------------------------------------------------------------
+
+def applyDiscount[T](discount: T) {
+  discount match {
+    case x: String =>                             // x is placeholder here
+      println(s"Lookup percentage discount in database for $x")
+
+    case x: Double =>
+      println(s"$x discount will be applied")
+
+    case _ => 
+      println("Unsupported discount type")
+  }
+}
+
+applyDiscount[String]("10")
+applyDiscount[Double](10)
