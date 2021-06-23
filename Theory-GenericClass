@@ -1,29 +1,57 @@
+import scala.collection.mutable.ArrayBuffer
+
 case class Person(name: String, age: Int)
 
 class Stack[Person] {
 
-  private var elements: List[Person] = Nil
+  private var elements: ArrayBuffer[Person] = ArrayBuffer[Person]()
+  private var stackSize:Int = 0
 
-  def push(x: Person): Unit =
-    elements = x :: elements
+  def push(x: Person): Unit ={
+    elements = x +: elements
+    stackSize = stackSize + 1
+  }
 
   def top: Person = elements.head
 
   def pop(): Person = {
     val currentTop = top        //Get the top element to PRINT
     elements = elements.tail    // List without first elements
+    stackSize = stackSize - 1
     currentTop
+  }
+  
+  def size:Int = stackSize
+  
+  /*def search(nameVal: String):Boolean = {
+    if(stackSize > 0){
+      elements.foreach(p => if(p.name.equals(nameVal)) true
+               else false       
+                      )
+    }
+    else false
+  }*/
+  
+  def list() {
+    elements.foreach(p => println(p))
+    //elements
   }
 }
 
 val stack = new Stack[Person]
 
 stack.push(Person("Amol",31))
+stack.size
 stack.push(Person("Swati",28))
 stack.push(Person("Vijay",25))
+stack.size
 
 stack.top.name
 
-stack.pop.name
+//stack.pop.name
+//stack.pop.name
+//stack.pop.name
 
-stack.pop.name
+stack.size
+stack.list
+//stack.search("Amol")
