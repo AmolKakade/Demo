@@ -1,4 +1,36 @@
-E.g.
+Ref link: http://allaboutscala.com/tutorials/chapter-2-learning-basics-scala-programming/scala-tutorial-learn-how-to-use-pattern-matching/
+
+1. Pattern matching: Return the result and use of wild card
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+val tasteLevel = donutType match {
+  case "Glazed Donut" => "Very tasty"
+  case "Plain Donut" => "Tasty"
+  case _ => "Default Test"     // Wild card
+}
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+2. Pattern matching: With 2 or more conditions
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+
+val tasteLevel3 = donutType match {
+  case "Glazed Donut" | "Strawberry Donut" => "Very tasty"
+  case "Plain Donut" => "Tasty"
+  case _ => "Tasty"
+}
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+3. Pattern matching: With if clause
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+
+val tasteLevel4 = donutType match {
+  case donut if (donut.contains("Glazed") || donut.contains("Strawberry")) => "Very tasty"
+  case "Plain Donut"  => "Tasty"
+  case _  => "Tasty"
+}
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+4. Pattern matching: BY TYPES ********************
+----------------------------------------------------------------------------------------------------------------------------------------------------------
 
 val variable: Any = 2.50
 
