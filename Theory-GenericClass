@@ -1,0 +1,29 @@
+case class Person(name: String, age: Int)
+
+class Stack[Person] {
+
+  private var elements: List[Person] = Nil
+
+  def push(x: Person): Unit =
+    elements = x :: elements
+
+  def top: Person = elements.head
+
+  def pop(): Person = {
+    val currentTop = top        //Get the top element to PRINT
+    elements = elements.tail    // List without first elements
+    currentTop
+  }
+}
+
+val stack = new Stack[Person]
+
+stack.push(Person("Amol",31))
+stack.push(Person("Swati",28))
+stack.push(Person("Vijay",25))
+
+stack.top.name
+
+stack.pop.name
+
+stack.pop.name
