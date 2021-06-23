@@ -1,0 +1,38 @@
+1. Anonymous function
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+- An anonymous function is also known as a function literal. 
+- A LIGHTWEIGHT function which does not contain a name is known as an anonymous function. 
+- Operator => is called as TRANSAFORMER. It is widely used in map(), foreach() etc.
+- It is useful when we want to create an inline function.
+
+Syntax:
+
+(z:Int, y:Int)=> z*y
+Or
+(_:Int)*(_Int)
+
+E.g.
+var myfc1 = (str1:String, str2:String) => str1 + str2
+OR
+var myfc1 = (_:String) + (_:String)
+println(myfc1("Amol"," K")) //Outcome - Amol K
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+2. Higher order function
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+- Higher order functions take other functions as parameters or return a function as a result. 
+- This is possible because functions are first-class values in Scala.
+
+val salaries = Seq(20000, 70000, 40000)
+val doubleSalary = (x: Int) => x * 2                // Anonymous function which multiplies parameter BY 2
+val newSalaries = salaries.map(doubleSalary)        // List(40000, 140000, 80000)
+
+OR
+val newSalaries = Seq(20000, 70000, 40000).map(e => e*2)
+
+
+OR
+val newSalaries = Seq(20000, 70000, 40000).map(_*2)
+
