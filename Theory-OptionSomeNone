@@ -1,5 +1,6 @@
 - Option/Some/None pattern gives us way to handles null values properly without throwing NullPointerException
-- Also it is quite handy for Exception Handling
+- Also it is quite handy for Exception Handling 
+  - https://github.com/AmolKakade/ScalaPreparation/blob/master/Theory-ExceptionHandling
 
 var a:Option[String] = Some("Amol")
 var b:Option[String] = None
