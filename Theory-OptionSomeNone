@@ -1,0 +1,7 @@
+- Option/Some/None pattern gives us way to handles null values properly without throwing NullPointerException
+- Also it is quite handy for Exception Handling
+
+var a:Option[String] = Some("Amol")
+var b:Option[String] = None
+println(a.getOrElse("..."))  // Outcomes Amol
+println(b.getOrElse("..."))  // Outcomes ...
