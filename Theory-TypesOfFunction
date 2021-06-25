@@ -1,3 +1,6 @@
+Ref Link: https://www.tutorialspoint.com/scala/currying_functions.htm
+
+
 1. Anonymous function
 --------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -32,7 +35,97 @@ val newSalaries = salaries.map(doubleSalary)        // List(40000, 140000, 80000
 OR
 val newSalaries = Seq(20000, 70000, 40000).map(e => e*2)
 
-
 OR
 val newSalaries = Seq(20000, 70000, 40000).map(_*2)
 
+--------------------------------------------------------------------------------------------------------------------------------------------
+3. Function with variable number of arguments
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+- Last of argument of function can be repeated multiple times without naming it
+- Parameter args in printStrings() acts as Seq() by default
+
+def printStrings(age : Int, args:String*) = {
+  for (a <- args){
+    println(s"$age , $a")
+  }
+}
+
+printStrings(1,"Amol","Swati","Vijay")
+
+Outcome
+1 , Amol
+1 , Swati
+1 , Vijay
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+4. Function with DEFAULT PARAMETER VALUE
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+- Parameter having default value NOT NEEDED to be passed function call time
+
+def printStrings(age : Int = 10, name : String = "Ovi") = {
+    println(s"$age , $name")
+}
+
+printStrings()        // No need to pass parameters
+
+Outcome
+10 , Ovi
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+5. Function - call-by-name
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+- We can call function from function as arg.
+
+def time() = {
+  println("Getting time in nano seconds")
+  System.nanoTime
+}
+def delayed(t: Long) = {  // t is 
+  println("In delayed method")
+  println("Param: " + t)
+}
+
+delayed(time())
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+6. Nested Function
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+- Function can be within another function
+- Inner function is called as local function
+
+def factorial(i: Int): Int = {
+      def fact(i: Int, accumulator: Int): Int = {
+         if (i <= 1)
+            accumulator
+         else
+            fact(i - 1, i * accumulator)
+      }
+      fact(i, 1)
+   }
+
+factorial(5)
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+7. Currying Function
+--------------------------------------------------------------------------------------------------------------------------------------------
+- Currying transforms a function that takes multiple parameters into a chain of functions, each taking a single parameter.
+
+def strcat(s1: String) = (s2: String) => {
+  s1 + s2
+}
+
+println(strcat("Amol ")("K"))
+
+
+OR
+
+def strcat(s1: String)(s2: String) = {
+  s1 + s2
+}
+
+println(strcat("Amol ")("K"))
