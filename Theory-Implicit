@@ -1,0 +1,19 @@
+Implicit variable
+- Implicit variable values are set at application context level.
+
+Implicit in variable in method
+- If no parameter/value is passed to a method, then the compiler will look for implicit value in application cotext and pass it as the parameter.
+
+NOTE:
+- A method can only contain one implicit keyword.
+- With CURRYING we can prevent all params becoming implicit
+- implicit parameter have to define at end like func3()
+
+E.g. Some samples:
+def func1(implicit x : Int)             // x is implicit
+def func2(implicit x : Int, y : Int)    // x and y both are implicit ************
+def func3 (x : Int)(implicit y : Int)   // only y is implicit *********
+
+
+
+
