@@ -14,7 +14,6 @@ def func1(implicit x : Int)             // x is implicit
 def func2(implicit x : Int, y : Int)    // x and y both are implicit ************
 def func3 (x : Int)(implicit y : Int)   // only y is implicit *********
 
-
 E.g -1
 
 implicit val a=10
