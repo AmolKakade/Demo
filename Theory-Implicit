@@ -1,35 +1,86 @@
-Implicit variable
-- Implicit variable values are set at application context level.
+Ref Link: https://blog.knoldus.com/implicit-conversions-in-scala-lets-extend-functionality/
 
-Implicit in variable in method
-- If no parameter/value is passed to a method, then the compiler will look for implicit value in application cotext and pass it as the parameter.
+Implicit parameter
+------------------------------------------------------------------------------------------------------------------------------------------
+- Implicit variable values are set at application context level. Scala compiler pass them by default if not passed by code.
+- An implicit parameter list (implicit p1, p2, p3, ..............pn) of a method marks the parameters 𝑝1,…,𝑝𝑛 as implicit. 
+- In application scope we can just one implicit value for every type like - Int, Double, Floart etc.
+- A method or constructor can have only one implicit keyword parameter list, and it must be the last parameter in given parameter list.
+- Implicit means if no value supplied when called compiler looks for its implicit value in its implicit scope.
+
+E.g 1
+object ImplicitParam extends App{
+ def multiply(implicit by: Int) = 5 * by
+
+ implicit val multiplier=2
+ println(multiply)            // No parameter is passed. Scala looks and applies implicit
+}
+
+E.g. 2
+
+def multiply(implicit by: Int, by1: Double) = 5 * by * by1
+implicit val x=2
+implicit val y=2.2
+println(multiply)             // No parameter is passed. Scala looks and applies implicit
+
 
 NOTE:
 - A method can only contain one implicit keyword.
 - With CURRYING we can prevent all params becoming implicit
-- implicit parameter have to define at end like func3()
+- In above example we can also call like ---- muliply(x) as well. This will behave like normal method.
+- While when you define two implicit values of the same type in the same implicit scope of implicit parameter it gives an error as  ambiguous implicit values, 
+- If we did not define any implicit value in its scope it will give an error as “could not find implicit value for parameter”. (E.g. 3)
 
-E.g. Some samples:
-def func1(implicit x : Int)             // x is implicit
-def func2(implicit x : Int, y : Int)    // x and y both are implicit ************
-def func3 (x : Int)(implicit y : Int)   // only y is implicit *********
+E.g. 3
 
-E.g -1
+def multiply(implicit by: Int, by1: Double) = 5 * by * by1
+val x=2
+val y=2.2
+println(multiply)             // No parameter is passed. Scala looks and try applies implicit. As No implicits as well, this is missing paremeter scenario.
 
-implicit val a=10
-val b=2
+Declarations:
+Some CORRECT sample declaration:
+1. def func1(implicit x : Int)             // x is implicit
+2. def func2(implicit x : Int, y : Int)    // x and y both are implicit ************
+3. def func3 (x : Int)(implicit y : Int)   // only y is implicit *********
 
-def addition (param1 : Int)(implicit param2 : Int) = {
-  println(param1)
-  println(param2)
-  param1 + param2
-}
-println(addition(b))
+Some INCORRECT sample declaration:
+def functionName(implicit x:Int)(implicit y:Int)    // Problem is : method can have implicit keyword just once
+def functionName(implicit x:Int)(y:Int)             // Problem is : implicit parameter should be last in list
 
-----Outcome---
-2
-10
-12
+--------------------------------------------------------------------------------------------------------------------------------------------------
+Implicit function
+--------------------------------------------------------------------------------------------------------------------------------------------------
+- Implicit functions are functions which Scala compiler tries to apply by default
 
+val i = 1
+ val intaddition = Seq(i).map { n => n + 1 }
+ println(intaddition)
 
+ implicit def intToSeq(i: Int): Seq[Int] = Seq(i)
+ //implicit def intToList(i: Int): List[Int] = List(i)   // This will make implicit conversion ambiguous
+ println(i + 10)
+ println(i.map(_ + 2))        // We cannot call on INT type. So here Scala compiler look and apply implicit function for INT to Collecrion(here it is Seq)
+ 
+--------------------------------------------------------------------------------------------------------------------------------------------------
+Implicit function
+--------------------------------------------------------------------------------------------------------------------------------------------------
+- The implicit class used to extend the behaviour of the existing class. Implicit classes are just like implicit functions in the way that they are resolved.
+- We can apply implicit(default) behaviour to any type
 
+E.g. 
+
+implicit class Bike(i: Int) {
+   def start: Unit = println(s"bike with number $i is starting")
+   def stop: Unit = println("bike with number $i is stopped")
+ }
+val i: Int = 4
+i.start
+i.stop
+
+NOTE:
+- With this code we are able to apply SOME DEFAULT behavior on TYPE INT with IMPLICIT class.
+- Scala compiler does following:
+    - checks whether Int has an inbuilt start or stop method? Nope?
+    - then it will check is there an implicit in-scope that takes an Int and has a start and stop method then it found implicit class “Bike” with these scenarios.
+    - 
