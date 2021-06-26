@@ -15,5 +15,22 @@ def func2(implicit x : Int, y : Int)    // x and y both are implicit ***********
 def func3 (x : Int)(implicit y : Int)   // only y is implicit *********
 
 
+E.g -1
+
+implicit val a=10
+val b=2
+
+def addition (param1 : Int)(implicit param2 : Int) = {
+  println(param1)
+  println(param2)
+  param1 + param2
+}
+println(addition(b))
+
+----Outcome---
+2
+10
+12
+
 
 
