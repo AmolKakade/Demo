@@ -1,0 +1,11 @@
+JSON Parsing
+------------------------------------------------------------------------------------------------------------------------
+df.withColumn(columnName,from_json(col(columnName),schema)).select("*",columnName.concat(".*")).drop(columnName)
+
+XML Parsing
+------------------------------------------------------------------------------------------------------------------------
+import com.databricks.spark.xml.XmlReader
+import com.databricks.spark.xml.XmlRelation
+
+new XmlReader().xmlRdd(df.sparkSession, df.select(columnName).rdd.map(r => r(0).asInstanceOf[String])).toDF
+new XmlReader().withSchema(StructType.fromDDL(schema)).xmlRdd(df.sparkSession, df.select(columnName).rdd.map(r => r(0).asInstanceOf[String])).toDF
