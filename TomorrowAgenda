@@ -6,7 +6,11 @@
 6. Types of functions
 7. Pattern matching
 8. Implicit
-9. Scala jdbc
+
+9.Serializable
+10.lazy
+11. Scala jdbc
+
 
 
 Scala Futures
