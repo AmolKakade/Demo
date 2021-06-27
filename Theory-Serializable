@@ -8,3 +8,6 @@
 class A extends Serializable{
   println(10)
 }
+
+- SerialVersionUID is value which will be used for maintaining version of object during DESERIALIZATION process.
+- Deserialization process should use same SerialVersionUID or else will not be able to deserialize properly.
