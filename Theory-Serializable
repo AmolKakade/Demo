@@ -1,10 +1,10 @@
 - Serializable is way to make Scala class or object ready to trasfer over network or write to file same as Java.
 - Serializable is TRAIT
-- We have to 2 things
+- We have to 2 things:
     - Extend Serializable Trait
-    - Use @SerialVersionUID(SOME_VALUE) annotation
+    - Use @SerialVersionUID(SOME_CONSTANT_LONG_OR_INTEGER_VALUE) annotation
 
-@SerialVersionUID(2)
+@SerialVersionUID(2L)     // Here we are using Long value
 class A extends Serializable{
   println(10)
 }
