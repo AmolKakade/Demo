@@ -1,5 +1,6 @@
 
-
+- Scala Futures provide a way to reason about performing many operations in parallel– in an efficient and non-blocking way. 
+- A Future is a placeholder object for a value that may not yet exist.
 
 import scala.concurrent._
 import scala.concurrent.duration._
