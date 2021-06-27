@@ -1,15 +1,23 @@
 - As name suggest, it is a evaluation strategy where an expression isn’t evaluated until its first use i.e to postpone the evaluation till its demanded
 - Under the hood, compile Scala code(i.e. Java) assigns a Monitor(synchorinized block and flag) for lazy val. When the first time variable will be accessed, flag will be set.
-- If we 2 objects having dependency with each other with lazy val, it can cause deadlock due to monitor
+- If we 2 objects having dependency with each other with lazy val, it can cause deadlock due to monitor(E.g. -2)
 
 E.g. -1
 val geeks = List(1, 2, 3, 4, 5)
-val output = geeks.map(l=> l*2)
+val output = geeks.map(l=> l*2)        		 // Expression is evaluated here only
 println(output)
 
-lazy val output2 = geeks.map(l=> l*2)
-println(output2)
+lazy val output2 = geeks.map(l=> l*2)         	 // Here compiler just makes outcomes lazy but don't evaluate it *****
+println(output2)				 // Expression will evaluated only on firt time access
 
+PROS:
+- Optimizes the computation process. Spark a big data computation engine uses this technique at it’s core.
+- Lazy evaluation can help us to resolve circular dependencies.
+
+Cons:
+- Finding bugs can be tricky as programmer has no control over program execution.
+- Can increase space complexity as all the instructions(operations) have to stored.
+- Harder to code in contrast with conventional approach.
 
 E.g. -2 
 
