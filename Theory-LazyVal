@@ -1,0 +1,35 @@
+- As name suggest, Scala compiler evaluates lazy val variable only at time of fisrt time access.
+- Under the hood, Scala/Java assigns a Monitor(synchorinized block and flag) for lazy val. When the first time variable will be accessed, flag will be set.
+- If we 2 objects having dependency with each other with lazy val, it can cause deadlock due to monitor
+
+E.g.
+
+object FirstObj {
+  lazy val initialState = 42
+  lazy val start = SecondObj.initialState
+}
+object SecondObj {
+  lazy val initialState = FirstObj.initialState
+}
+
+object Deadlock extends App {
+  def run = {
+    val result = Future.sequence(Seq(
+      Future {
+        FirstObj.start
+      },
+      Future {
+        SecondObj.initialState
+      }
+    ))
+    Await.result(result, 10.second)
+  }
+  run
+}
+
+
+Outcome(Its deadlock situation):
+
+Exception in thread "main" java.util.concurrent.TimeoutException: Future timed out after [10 seconds]
+	at scala.concurrent.impl.Promise$DefaultPromise.tryAwait0(Promise.scala:212)
+	at scala.concurrent.impl.Promise$DefaultPromise.result(Promise.scala:225)
