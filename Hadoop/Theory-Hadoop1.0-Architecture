@@ -42,22 +42,42 @@ What happens during Restart of cluster
 2. DataNode(Slave)
   - Stores actual data on machine (64 MB block)
 
-3. Secondary NameNode OR Checkpoint node
+3. Secondary NameNode
 - Its Helper of Namenode NOT A BACKUP of NameNode.
-- If we restart the cluster after a long time there will be a vast down time since the edit log file would have grown and merge of FSImage and EditLogs will take time.
+- If we restart the cluster after a long time there will be a vast down time since the EditLogs file would have grown and merge of FSImage and EditLogs will take time.
 - Secondary namenode would come into picture in rescue of this problem. 
-- Secondary Namenode simply gets edit logs from name node periodically and copies to fsimage. This new fsimage is copied back to namenode.
+- Secondary Namenode simply gets edit logs from name node periodically and copies to fsimage. This new FSImage is copied back to local storage on Secondary NameNode.
 - It is usually run on a different machine than the primary NameNode since its memory requirements are on the same order as the primary NameNode.
-- Secondary Namenode whole purpose is to have checkpoint in HDFS, which helps namenode to function effectively. Hence, It is also called as Checkpoint node.
+- Secondary Namenode whole purpose is to have checkpoint for HDFS, which helps namenode to function effectively. Hence, It is also called as Checkpoint node.
 
 -The start of the checkpoint process on the secondary NameNode is controlled by two configuration parameters.
             dfs.namenode.checkpoint.period  - set to 1 hour by default, specifies the maximum delay between two consecutive checkpoints, and
             dfs.namenode.checkpoint.txns    - set to 1 million by default, defines the number of uncheckpointed transactions on the NameNode which will force an urgent checkpoint, even if the checkpoint period has not been reached.
 
-- The secondary NameNode stores the latest checkpoint in a directory which is structured the same way as the primary NameNode’s directory.
+- The secondary NameNode stores the latest checkpoint in a directory which is structured similar to primary NameNode’s directory, so in case needed NameNode can use it quickly.
+            
+ 4. Checkpoint node
+ - It is almost similar to Secondary NameNode operationwise.
+ - The only difference is checkpoint node directly uploads MERGED FSImage to NameNode where as Secondary NameNode doesn't have FSImage upload feature to NameNode.
+ - Secondary NameNode MERGED FSImage is copied back to local storage on Secondary NameNode and used during reboot process.
 - Multiple checkpoint nodes may be specified in the cluster configuration file.
             dfs.namenode.backup.address
             dfs.namenode.backup.http-address
+            
+ 5. Backup Node
+ - A Backup Node acts as a checkpoint node. If Backup Node is present Checkpoint Node NOT NEEDED.
+ - Backup node keeps an IN-MEMORY, up-to-date copy of the file system FSImage and EditLogs, which is always synchronized with the active NameNode state.
+ - There is no need for Backup node to download FSImage and EditLogs from the active NameNode in order to create a checkpoint like Checkpoint or Secondary Namenode, because it already has an up-to-data state of the namespace state in memory.   
+ - The Backup node checkpoint process is more efficient as it only needs to save the FSImage into the local FSImage file and reset EditLogs.
+ - Each FSImage file merging transaction is termed as the Checkpoint.
+
+NOTE:
+ - Nowadays no Backup node being used in practice and these should be considered deprecated. 
+ - In HA, at any point in time, exactly one of the NameNodes is in an Active state, and the other is in a Standbystate.
+ - To start back proess command is:
+ 
+ hdfs namenode -backup
+ 
 ----------------------------------------------------------------------------------------------------------------------------------------------------
 MapReduce
 - Its data processing tier of Hadoop framework
