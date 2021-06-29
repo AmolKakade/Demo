@@ -1,1 +1,77 @@
-a
+- Based on Google white paper published by Doug Cutting.
+- Hadoop is DISTRIBUTED, SCALABLE, HIGHLY AVAILABLE, FAULT TOLERANT big data BATCH processing framework
+- Runs on commodity Hardware
+- Follows master-slave architecture
+- EXECUTION IS PUSHED TO STORAGE
+----------------------------------------------------------------------------------------------------------------------------------------------------
+- Hadoop 1.x Major Components are
+    - HDFS
+    - MapReduce
+----------------------------------------------------------------------------------------------------------------------------------------------------
+HDFS
+- Its storage tier of Hadoop framework
+
+1. NameNode(Master)
+- Stores the METADAT of Hadoop System - FILES and DataNode node info
+FILES Details:::
+  - How many files are stored on HDFS
+  - In how many blocks those files are stored
+  - For each block, on which DataNodes replicas are stored
+  - At what time thos ereplicas are stored.
+  - Storage location of each block
+
+DataNode Details:::
+  - DataNode Details - IPs
+  - Details of blacklisted DataNodes if any
+  - Data Nodes locations, timestamps etc
+  
+SOME Important Responsibilities:::
+  - MONITORING - It regularly receives a Heartbeat and a block report from all the DataNodes in the cluster to ensure that the DataNodes are live.
+  - HIGH AVAILABILITY - In case of the DataNode failure, the NameNode chooses new DataNodes for new replicas, balance disk usage and manages the communication traffic to the DataNodes.
+  
+METADATA 
+Metadata = FSImage + EditLogs 
+- FSImage - It is Snapshot of HDFS file system stored In Main memory of Master node. It is also backed up on Hard Disk of Master Node.
+- EditLogs - It stores all the DELTA changes happend to HDFS after last restart of Cluster. This grows big we do not restart Cluster in long Time
+
+What happens during Restart of cluster
+- All EditLogs will be merged to FSImage
+- New FSImage will be loaded in RAM and backed up on master node Disk.
+- New empty EditLogs will be created.
+
+2. DataNode(Slave)
+  - Stores actual data on machine (64 MB block)
+
+3. Secondary NameNode OR Checkpoint node
+- Its Helper of Namenode NOT A BACKUP of NameNode.
+- If we restart the cluster after a long time there will be a vast down time since the edit log file would have grown and merge of FSImage and EditLogs will take time.
+- Secondary namenode would come into picture in rescue of this problem. 
+- Secondary Namenode simply gets edit logs from name node periodically and copies to fsimage. This new fsimage is copied back to namenode.
+- It is usually run on a different machine than the primary NameNode since its memory requirements are on the same order as the primary NameNode.
+- Secondary Namenode whole purpose is to have checkpoint in HDFS, which helps namenode to function effectively. Hence, It is also called as Checkpoint node.
+
+-The start of the checkpoint process on the secondary NameNode is controlled by two configuration parameters.
+            dfs.namenode.checkpoint.period  - set to 1 hour by default, specifies the maximum delay between two consecutive checkpoints, and
+            dfs.namenode.checkpoint.txns    - set to 1 million by default, defines the number of uncheckpointed transactions on the NameNode which will force an urgent checkpoint, even if the checkpoint period has not been reached.
+
+- The secondary NameNode stores the latest checkpoint in a directory which is structured the same way as the primary NameNode’s directory.
+- Multiple checkpoint nodes may be specified in the cluster configuration file.
+            dfs.namenode.backup.address
+            dfs.namenode.backup.http-address
+----------------------------------------------------------------------------------------------------------------------------------------------------
+MapReduce
+- Its data processing tier of Hadoop framework
+
+1. JobTracker(Master) 
+  - Get the Job request from client machines and assign it to Worker nodes(TaskTracker)
+  - Monitor execution of Tasks
+  - At the end of execution send the result to client.
+  - FAULT TOLERANCE -If tasks are failed, it reassigns it for execution. If task failed multiple times worker node, no new tasks are scheduled on it and taken out for monitoring.
+  - SPECULATIVE EXECUTION - It is a process that takes place during the slower execution of a task at a node. In this process, the master node starts executing another BACKUP instance of that same task on the other node. 
+                            And the task which is finished first is accepted and the execution of other is stopped by killing that.
+    
+2. Task Tracker - It is data processing layer. It is actual unit of processing.
+  - Tasks can be on 2 types
+        - Map Tasks
+        - Reduce Tasks
+
