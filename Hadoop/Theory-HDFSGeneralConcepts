@@ -53,7 +53,7 @@ Split-Brain Scenario:
           - Make StandBy Name and Active and Active to Standby
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------
-4. Hadoop configuration files ( Ref link: https://docs.cloudera.com/HDPDocuments/HDP2/HDP-2.1.7/bk_using-apache-hadoop/content/configuration_files.html )
+5. Hadoop configuration files ( Ref link: https://docs.cloudera.com/HDPDocuments/HDP2/HDP-2.1.7/bk_using-apache-hadoop/content/configuration_files.html )
 ------------------------------------------------------------------------------------------------------------------------------------------------------------
 - core-site.xml - 
   - This contains configuration settings for Hadoop Core, such as I/O settings that are common to HDFS2 and MRv2. 
@@ -73,3 +73,45 @@ Split-Brain Scenario:
     - yarn.resourcemanager.webapp.address etc.
 
 - capacity-scheduler.xml - Detail of scheduler etc.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+6. Modes in which Hadoop can run
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+- Standalone mode: This is the default mode. It uses the local FileSystem and a single Java process to run the Hadoop services.
+- Pseudo-distributed mode: This uses a single-node Hadoop deployment to execute all Hadoop services.
+- Fully-distributed mode: This uses separate nodes to run Hadoop master and slave services.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+7. FSCK Utility
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+- Hadoop fsck utility is meant to report the status of blocks spread accross entire HDFS.
+- This utility will just generate the report and will not correct anything. 
+- It will help for anlysis of entire HDFS and find over OR under-replicated blocks if any.
+- Over replicated blocks will be deleted by NameNode automatically and is not a problem at all.
+
+hdfs fsck / -files –blocks –locations > dfs-fsck.log
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+Mostly used commands
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+hadoop fs –copyFromLocal [source] [destination]
+
+Set repplication of specific files to 5
+Hadoop fs –setrep –w5 /path of the file
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
