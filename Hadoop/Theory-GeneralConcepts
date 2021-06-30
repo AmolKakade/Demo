@@ -1,0 +1,75 @@
+1. NameNode Safemode
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+- Safemode for the NameNode is essentially a read-only mode for the HDFS cluster, where it does not allow any modifications to file system or blocks. 
+- During start up the NameNode loads the file system state from the fsimage and the edits log file. 
+- It then waits for DataNodes to report their blocks to avoid prematurely start replicating the blocks though enough replicas already exist in the cluster. 
+- During this time NameNode stays in Safemode. 
+- Normally the NameNode leaves Safemode automatically after the DataNodes have reported that most file system blocks are available.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+2. Rack awareness
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+- Hadoop master node will always be aware about cluster network topology. Hadoop does so by running Java class as specified by configuration files.
+- Master node will have details like how many network swtches, racks, datanodes per rack etc. This is nothing but rack awareness.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+3. Rack aware replica placement
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+- While writing the files to HDFS, Hadoop write file blocks by using some policies.
+    - Keep one of the replicas of a block on the same node as the node that is writing the block.
+    - Next block replica will be placed on same rack, different data node. Cross-rack network I/O is reduced.
+    - One block replicated across the racks so that cluster can survive loss of whole rack.
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+4. NameNode High Availability(HA)
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+SPOF
+    - Prior to Hadoop 2.0.0, the NameNode was a single point of failure (SPOF) in an HDFS cluster. 
+    - Each cluster had a single NameNode, and if that machine or process became unavailable. 
+    - This scenario cluster as a whole would be unavailable until the NameNode was either restarted or brought up on a separate machine.
+    
+Architecture
+    - Two or more separate machines are configured as NameNodes. One will be active and another will be standby.
+    - Active will serve the cluster while and will act as MASTER while standby acts as SLAVE.
+
+Prerequisites
+    - Hardware - Machines on which we want to run the Active and Standby NameNodes should have equivalent hardware to each other.
+    - Shared storage(NFS) - need to have a shared directory which the NameNode machines have read/write access
+
+Write in HA
+    - Active node writes EditLogs to shared ditectory accessible to Active and StandBy Nodes. 
+    - As soon as some changes happen in shared storage(NFS), Standby node will read and apply to its FSImage copy, thus will be always in sync.
+   
+Role of DataNode
+   - All DataNodes are configured with the location of all NameNodes and they send block location information and heartbeats to all the NameNodes.
+   - So in case of failover, Standby nodes have up-to-date information regarding the location of blocks in the cluster.
+   
+Split-Brain Scenario:
+    - IT IS MUST that at a time JUST one ACTIVE Namenode is there for cluster. 
+    - Else 2 Namenodes will start serving some set of DataNodes and will logically split HDFS network in 2.
+    - To avoid this admistrators has to build FENCING mechanism which will do below steps in case of failover
+          - cut off the previous Active Namenode's write access to the shared edits storage
+          - Apply all EditLogs from shared storage to StandBy NameNode
+          - Make StandBy Name and Active and Active to Standby
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+4. Hadoop configuration files ( Ref link: https://docs.cloudera.com/HDPDocuments/HDP2/HDP-2.1.7/bk_using-apache-hadoop/content/configuration_files.html )
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+- core-site.xml - 
+  - This contains configuration settings for Hadoop Core, such as I/O settings that are common to HDFS2 and MRv2. 
+  - It is used by all Hadoop daemons and clients, because all daemons need to know the location of the Name Node.
+  
+- hdfs-site.xml - Details of path on LOCAL filesystem used by NameNode and DataNode for HDFS formation. 
+    - dfs.name.dir
+    - dfs.data.dir etc.
+
+- mapred-site.xml - Details if JobTracker and TaskTracker
+    - mapred.job.tracker - JobTracker IP
+    - dfs.hosts/dfs.hosts.exclude
+    - mapred.local.dir  - LOCAL filesystem path to write task data temporarily.
+
+- yarn-site.xml - Details of YARN. It is used by the Client, the Node Manager, and the Resource Manager. 
+    - yarn.resourcemanager.hostname
+    - yarn.resourcemanager.webapp.address etc.
+
+- capacity-scheduler.xml - Detail of scheduler etc.
