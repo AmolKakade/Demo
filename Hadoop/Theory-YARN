@@ -1,1 +1,161 @@
 https://hadoop.apache.org/docs/current/hadoop-yarn/hadoop-yarn-site/YARN.html
+
+***NOTE:
+MapReduce in hadoop-2.x maintains API compatibility with previous stable release (hadoop-1.x). This means that all MapReduce jobs should still run unchanged on top of YARN with just a recompile.
+
+Need
+- The fundamental idea of YARN is to split up the functionalities of resource management and job scheduling/monitoring into separate daemons.
+- resource management
+    - ResourceManager - The idea is to have a global ResourceManager (RM)
+    - NodeManager
+
+ResourceManager
+- The ResourceManager and the NodeManager form the data-computation framework. 
+- The ResourceManager is the ultimate authority that arbitrates resources among all the applications in the system. 
+- The ResourceManager has two main components;
+    1. Scheduler
+       - responsible for allocating resources to the various running applications subject to familiar constraints of capacities, queues etc. 
+       - The Scheduler is pure scheduler in the sense that it performs NO monitoring NO tracking of status for the application.
+       - offers no guarantees about restarting failed tasks either due to application failure or hardware failures. 
+       - The Scheduler performs its scheduling function based on the resource requirements of the applications
+       - It does so based on the abstract notion of a resource Container which incorporates elements such as memory, cpu, disk, network etc.
+       - The Scheduler has a pluggable policy which is responsible for partitioning the cluster resources among the various queues, applications etc. 
+       - The current schedulers such as the CapacityScheduler and the FairScheduler would be some examples of plug-ins.
+
+    2. ApplicationsManager
+       - responsible for accepting job-submissions, negotiating JUST THE FIRST container for executing the ApplicationMaster 
+       - also provides the service for restarting the ApplicationMaster container on failure.
+
+CapacityScheduler
+- The CapacityScheduler is designed to allow sharing a large cluster used by multiple organizations, while giving each organization capacity guarantees. 
+- The central idea is that the available resources in the Hadoop cluster are shared among multiple organizations who collectively fund the cluster based on their computing needs. 
+- There is an added benefit that an organization can access any excess capacity not being used by others. 
+- This provides elasticity for the organizations in a cost-effective manner.
+- CapacityScheduler provides limits on initialized & pending applications from a single user and queue to ensure fairness and stability of the cluster.
+- The primary abstraction provided by the CapacityScheduler is the concept of QUEUES. These queues are typically setup by administrators.
+- CapacityScheduler supports hierarchical queues to ensure resources are shared among the sub-queues of an organization before other queues are allowed to use free resources
+- Features of CapacityScheduler;
+    Hierarchical Queues - Hierarchy of queues is supported to ensure resources are shared among the sub-queues of an organization before with other queues.
+    Capacity Guarantees - Queues are allocated a fraction of the capacity of the grid in the sense that a certain capacity of resources will be at their disposal. All applications submitted to a queue will have access to the capacity allocated to the queue. Administrators can configure soft limits and optional hard limits on the capacity allocated to each queue.
+    Security - Each queue has strict ACLs which controls which users can submit applications to individual queues. Also, per-queue and system administrator roles are supported.
+    Elasticity - Free resources can be allocated to any queue beyond its capacity.
+    Multi-tenancy - Comprehensive set of limits are provided to prevent a single application, user and queue from monopolizing resources of the queue or the cluster.
+    Priority Scheduling - This feature allows applications to be submitted and scheduled with different priorities. 
+*******                 - Higher integer value indicates higher priority for an application. 
+*******                 - Currently Application priority is supported only for FIFO ordering policy.
+
+Configuration
+- File is conf/yarn-site.xml
+  yarn.resourcemanager.scheduler.class	=> org.apache.hadoop.yarn.server.resourcemanager.scheduler.capacity.CapacityScheduler
+
+Setting Queues
+- etc/hadoop/capacity-scheduler.xml is the configuration file for the CapacityScheduler.
+- The CapacityScheduler has a predefined queue called root. 
+- All queues in the system are children of the root queue.
+
+<property>
+  <name>yarn.scheduler.capacity.root.queues</name>
+  <value>a,b,c</value>
+  <description>The queues at the this level (root is the root queue).
+  </description>
+</property>
+
+<property>
+  <name>yarn.scheduler.capacity.root.a.queues</name>                  ******** First child queue 'a' having to child queues 'a1', 'a2'
+  <value>a1,a2</value>
+  <description>The queues at the this level (root is the root queue).
+  </description>
+</property>
+
+<property>
+  <name>yarn.scheduler.capacity.root.b.queues</name>
+  <value>b1,b2,b3</value>
+  <description>The queues at the this level (root is the root queue).
+  </description>
+</property>
+
+Queue Resource Allocation:
+    yarn.scheduler.capacity.root.a.capacity=75.10
+    yarn.scheduler.capacity.root.b.capacity=24.90
+
+    yarn.scheduler.capacity.root.a.a1.capacity=60.8
+    yarn.scheduler.capacity.root.a.a2.capacity=39.2
+
+    yarn.scheduler.capacity.root.b.b1.capacity=48.2
+    yarn.scheduler.capacity.root.b.b2.capacity=51.8
+NOTE:
+- Queue capacity in percentage (%) as a float (e.g. 12.5) OR as absolute resource queue minimum capacity. 
+- The sum of capacities for all queues, at each level, must be equal to 100(root.a, root.b).
+- However if absolute resource is configured, sum of absolute resources of child queues could be less than it’s parent absolute resource capacity.
+
+
+FairScheduler
+- Fair scheduling is a method of assigning RESOURCES to applications such that all apps get, on average, an equal share of resources over time. 
+- By default, the Fair Scheduler bases scheduling fairness decisions only on memory.
+- Hadoop NextGen is capable of scheduling multiple resource types. 
+
+Allocation:
+- When there is a single app running, that app uses the entire cluster. 
+- When other apps are submitted, resources that free up are assigned to the new apps, so that each app eventually on gets roughly the same amount of resources.
+- On other hand with default Hadoop scheduler(JobQueueTaskScheduler) and CapacityScheduler, which forms a queue of apps.
+
+
+
+
+
+
+ApplicationMaster failure, how that works?
+
+
+
+- The NodeManager is the per-machine framework agent who is responsible for containers, monitoring their resource usage (cpu, memory, disk, network) 
+- It is also reponsible for reporting the same to the ResourceManager/Scheduler.
+
+ApplicationMaster
+- There will be one ApplicationMaster (AM) per-application.
+- It has the responsibility of negotiating appropriate resource containers from the Scheduler, tracking their status and monitoring for progress.
+- An application is either a single job or a DAG of jobs.
+- ApplicationMaster is a framework specific library does;
+    - negotiating resources from the ResourceManager(Scheduler) 
+    - working with the NodeManager(s) to execute and monitor the tasks.
+    
+    
+YARN Federation
+What is ApplicationMasterProtocol?
+What is AMRMProxy?
+
+Federation State-Store
+  1. Sub-cluster Membership
+    - Each sub-cluster YARN RMs continuously heartbeat to the state store to keep alive and publish their current capability/load information.
+    - This information can be used by ROUTERS to select the best home sub-cluster.
+  2. Application’s Home Sub-cluster
+    - The sub-cluster on which the Application Master (AM) runs is called the Application’s “home sub-cluster”. 
+    - The AM is not limited to resources from the home sub-cluster but can also request resources from other sub-clusters, referred to as secondary sub-clusters. 
+    - The federated environment will be configured such that when an AM is placed on a sub-cluster, it should be able to find most of the resources on the home sub-cluster. 
+    - Only in certain cases it should need to ask for resources from other sub-clusters.
+    
+    
+Federation Policy Store
+- The federation Policy Store is a logically separate store (while it might be backed by the same physical component)
+- Contains information about how applications and resource requests are routed to different sub-clusters. 
+- The current implementation provides policies like random/hashing/round-robin/priority etc for sub-cluster load, and request locality needs.
+
+- In order to scale YARN beyond few thousands nodes, YARN supports the notion of Federation via the YARN Federation feature. 
+- Federation allows to transparently wire together multiple YARN sub-clusters, and make them appear as a single massive cluster. 
+- The federation system will stitch these sub-clusters together and make them appear as one large YARN cluster to the applications. 
+- The applications running in this federated environment will see a single massive YARN cluster and will be able to schedule tasks on any node of the federated cluster. 
+- Under the hood, the federation system will negotiate with sub-clusters resource managers and provide resources to the application. 
+
+YARN Sub-cluster
+- Each sub-cluster has its own YARN RM and compute nodes. 
+- The exact size of the sub-cluster will be determined considering ease of deployment/maintenance, network or availability zones and general best practices etc.
+- If the entire sub-cluster is compromised, external mechanisms will ensure that jobs are resubmitted in a separate sub-cluster
+- Sub-cluster is also the SCALABILITY UNIT in a federated environment. We can scale out the federated environment by adding one or more sub-clusters.
+
+Router
+- YARN applications are submitted to one of the Routers, which applies a routing policy (obtained from the Policy Store), queries the State Store for the sub-cluster URL 
+- Then it redirects the application submission request to the appropriate sub-cluster RM. 
+- We call the sub-cluster where the job is started the “home sub-cluster”, and we call “secondary sub-clusters” all other sub-cluster a job is spanning on.
+
+
+
