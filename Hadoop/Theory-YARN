@@ -73,6 +73,12 @@ ApplicationMaster
     - working with the NodeManager(s) to execute and monitor the tasks.
 
 
+FIFO scheduler
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
+- This places applications in a queue and runs them in the order of submission (first in, first out). 
+- It is not desirable, as a long-running application might block the small running applications.
+
+
 CapacityScheduler
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------
 - The CapacityScheduler is designed to allow sharing a large cluster used by multiple organizations, while giving each organization capacity guarantees. 
@@ -195,3 +201,10 @@ AMRMProxy
 - The AMRMProxy runs on all the NM machines and acts as a proxy to the YARN RM for the AMs by implementing ApplicationMasterProtocol.
 ****- Applications WILL NOT BE allowed to communicate with the sub-cluster RMs directly. 
 - They are forced by the system to connect only to the AMRMProxy endpoint, which would provide transparent access to multiple YARN RMs.
+
+
+Some useful commands
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
+yarn application -status ApplicationID
+yarn application -kill ApplicationID
+
