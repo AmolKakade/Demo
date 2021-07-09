@@ -1,15 +1,15 @@
-https://hadoop.apache.org/docs/current/hadoop-yarn/hadoop-yarn-site/YARN.html
-
 ***NOTE:
 MapReduce in hadoop-2.x maintains API compatibility with previous stable release (hadoop-1.x). This means that all MapReduce jobs should still run unchanged on top of YARN with just a recompile.
 
-Need
+Need of YARN ( ref link : https://hadoop.apache.org/docs/current/hadoop-yarn/hadoop-yarn-site/YARN.html)
+--------------------------------------------------------------------------------------------------------------------------------------------------------------- 
 - The fundamental idea of YARN is to split up the functionalities of resource management and job scheduling/monitoring into separate daemons.
 - resource management
     - ResourceManager - The idea is to have a global ResourceManager (RM)
     - NodeManager
-
+    
 ResourceManager
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
 - The ResourceManager and the NodeManager form the data-computation framework. 
 - The ResourceManager is the ultimate authority that arbitrates resources among all the applications in the system. 
 - The ResourceManager has two main components;
@@ -26,7 +26,55 @@ ResourceManager
        - responsible for accepting job-submissions, negotiating JUST THE FIRST container for executing the ApplicationMaster 
        - also provides the service for restarting the ApplicationMaster container on failure.
 
+NodeManager ( Ref link https://blog.cloudera.com/apache-hadoop-yarn-nodemanager/)
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
+- The NodeManager is the per-machine framework agent who is responsible for containers, monitoring their resource usage (cpu, memory, disk, network) 
+- It is also reponsible for reporting the same to the ResourceManager/Scheduler.
+
+Sub-Components of NodeManager:
+1. NodeStatusUpdater
+    - On cluster startup, NodeStatusUpdater registers with the RM and sends information about the resources available on the node. 
+    - It keeps RM updated with information like - new containers running on the node, completed containers, etc.
+    - In addition the RM may signal the NodeStatusUpdater to potentially kill already running containers.
+2. ContainerManager
+    - This is the core of the NodeManager and has below sub components;
+        RPC server 
+            - ContainerManager accepts requests from Application Masters (AMs) to start new containers, or to stop running ones.
+            
+        ResourceLocalizationService
+            - Responsible for securely DOWNLOADING and organizing various file resources needed by containers.
+            
+        ContainersLauncher
+            - Maintains a pool of threads to prepare and launch containers as quickly as possible. 
+            - Also cleanup the containers processes when such a request is sent by the RM or the ApplicationMasters (AMs).
+            
+        ContainersMonitor
+            - After a container is launched, this component starts observing its resource utilization while the container is running. 
+            - To enforce isolation and fair sharing of resources like memory, each container is allocated some amount of such a resource by the RM. 
+            - The ContainersMonitor monitors each container’s usage continuously and if a container exceeds its allocation, it signals the container to be killed. 
+        
+        LogHandler
+            - A pluggable component with the option of either keeping the containers’ logs on the local disks or zipping them together and uploading them onto a file-system.
+
+3. ContainerExecutor
+    - Interacts with the underlying OS to place files and directories needed by containers and subsequently to launch/clean-up processes corresponding to containers.
+
+4. WebServer
+    - Exposes the information about list of applications, containers running, node-health related information and the logs produced by the containers.
+
+
+ApplicationMaster
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
+- There will be one ApplicationMaster (AM) per-application.
+- It has the responsibility of negotiating appropriate resource containers from the Scheduler, tracking their status and monitoring for progress.
+- An application is either a single job or a DAG of jobs.
+- ApplicationMaster is a framework specific library does;
+    - negotiating resources from the ResourceManager(Scheduler) 
+    - working with the NodeManager(s) to execute and monitor the tasks.
+
+
 CapacityScheduler
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
 - The CapacityScheduler is designed to allow sharing a large cluster used by multiple organizations, while giving each organization capacity guarantees. 
 - The central idea is that the available resources in the Hadoop cluster are shared among multiple organizations who collectively fund the cluster based on their computing needs. 
 - There is an added benefit that an organization can access any excess capacity not being used by others. 
@@ -90,6 +138,7 @@ NOTE:
 
 
 FairScheduler
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
 - Fair scheduling is a method of assigning RESOURCES to applications such that all apps get, on average, an equal share of resources over time. 
 - By default, the Fair Scheduler bases scheduling fairness decisions only on memory.
 - Hadoop NextGen is capable of scheduling multiple resource types. 
@@ -99,31 +148,16 @@ Allocation:
 - When other apps are submitted, resources that free up are assigned to the new apps, so that each app eventually on gets roughly the same amount of resources.
 - On other hand with default Hadoop scheduler(JobQueueTaskScheduler) and CapacityScheduler, which forms a queue of apps.
 
-
-
-
-
-
-ApplicationMaster failure, how that works?
-
-
-
-- The NodeManager is the per-machine framework agent who is responsible for containers, monitoring their resource usage (cpu, memory, disk, network) 
-- It is also reponsible for reporting the same to the ResourceManager/Scheduler.
-
-ApplicationMaster
-- There will be one ApplicationMaster (AM) per-application.
-- It has the responsibility of negotiating appropriate resource containers from the Scheduler, tracking their status and monitoring for progress.
-- An application is either a single job or a DAG of jobs.
-- ApplicationMaster is a framework specific library does;
-    - negotiating resources from the ResourceManager(Scheduler) 
-    - working with the NodeManager(s) to execute and monitor the tasks.
+    
+Reservation System
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
+- The ReservationSystem of YARN provides ability to users to reserve resources over (and ahead of) time, 
+- It helps to ensure that important production jobs will be run very predictably.
+- ReservationSystem performs provides guarantees over absolute amounts of resources (instead of % of cluster size).
     
     
-YARN Federation
-What is ApplicationMasterProtocol?
-What is AMRMProxy?
-
+YARN Federation ( Ref link : https://hadoop.apache.org/docs/current/hadoop-yarn/hadoop-yarn-site/Federation.html)
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
 Federation State-Store
   1. Sub-cluster Membership
     - Each sub-cluster YARN RMs continuously heartbeat to the state store to keep alive and publish their current capability/load information.
@@ -133,7 +167,6 @@ Federation State-Store
     - The AM is not limited to resources from the home sub-cluster but can also request resources from other sub-clusters, referred to as secondary sub-clusters. 
     - The federated environment will be configured such that when an AM is placed on a sub-cluster, it should be able to find most of the resources on the home sub-cluster. 
     - Only in certain cases it should need to ask for resources from other sub-clusters.
-    
     
 Federation Policy Store
 - The federation Policy Store is a logically separate store (while it might be backed by the same physical component)
@@ -157,5 +190,8 @@ Router
 - Then it redirects the application submission request to the appropriate sub-cluster RM. 
 - We call the sub-cluster where the job is started the “home sub-cluster”, and we call “secondary sub-clusters” all other sub-cluster a job is spanning on.
 
-
-
+AMRMProxy
+- The AMRMProxy is a key component to allow the application to scale and run across sub-clusters. 
+- The AMRMProxy runs on all the NM machines and acts as a proxy to the YARN RM for the AMs by implementing ApplicationMasterProtocol.
+****- Applications WILL NOT BE allowed to communicate with the sub-cluster RMs directly. 
+- They are forced by the system to connect only to the AMRMProxy endpoint, which would provide transparent access to multiple YARN RMs.
