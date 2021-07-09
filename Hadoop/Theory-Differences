@@ -1,0 +1,6 @@
+Hadoop 1.x vs Hadoop 2.x
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+1. JobTracker is appoox equal to YARN
+2. No concept called ApplicationMaster in Hadoop 1.x. JobTracker used to handle sll running applications on cluster.
+3. JobTracker and NameNode was SPOF
+4. Hadoop 1.x(JobTracker) was able to handle only MapReduce application. Because if YARN even non MapReduce jobs can run on Hadoop 2.x onwards like Spark, Storm etc.
