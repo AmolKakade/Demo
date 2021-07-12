@@ -380,11 +380,68 @@ val spark_context = sparkSession._sc                                            
 val spark_context = sparkSession.sparkContext                                       // Approach 2
 
 
+Accumulators 
+- Accumulators are variables that are "added" to through an associative and commutative "add" operation.
+- They are designed to be used safely and efficiently in parallel and distributed Spark computations and are meant for distributed counters and sums.
+***- Accumulator are WRITE-ONLY variables for executors. They can be added to by executors and READ BY the driver ONLY.
+- Accumulators don't have to to be thread safe as each executor updates its own local copy.
+- Driver program runs DAGScheduler.updateAccumulators() method after a task completes (successfully or with a failure) is only executed on a single thread that runs scheduling loop. 
+- Built in accumulators:
+        - You can use longAccumulator, doubleAccumulator or collectionAccumulator to create and register accumulators for simple and collection values.
+        E.g. 
+        scala> val counter = sc.longAccumulator("counter").                // longAccumulator
+        scala> counter.value                                               // DEFAULT VALUE is 0.0
+        scala> sc.parallelize(0 to 10).foreach(n => counter.add(n))
+        scala> counter.value                                               // Outcome is 55
+        
 
-What is SparkEnv?
+Broadcast Variables
+- Broadcast variables allow the programmer to keep a read-only variable cached on each machine rather than shipping a copy of it with tasks.
+- Creating broadcast variables is only useful when tasks across multiple stages need the same data or when caching the data in deserialized form.
+- The Broadcast feature in Spark uses 3 classes
+        SparkContext - To create broadcast values
+        BroadcastManager - To track Brodcast veriable. BroadcastManager does so by using the internal field nextBroadcastId.
+        ContextCleaner - manage lifecycle of Brodcast veriables. Explained below.
+        
+ContextCleaner 
+— It is Spark Application's Garbage Collector
+- ContextCleaner service is responsible for application-wide cleanup of shuffles, RDDs, broadcasts, accumulators and checkpointed RDDs.
+- ContextCleaner runs on the Driver process. 
+- It is created and immediately started when SparkContext starts.  (and spark.cleaner.referenceTracking Spark property is enabled, which it is by default). 
+- It is stopped when SparkContext is stopped.
+- keepCleaning() method runs indefinitely until ContextCleaner is stopped. 
+
+E.g.
+        scala> val b = sc.broadcast(1)
+        b: org.apache.spark.broadcast.Broadcast[Int] = Broadcast(0)
+        scala> b.value
+        res0: Int = 1
+        scala> b.destroy                                                    // Release broadcast variable from executor's memory.
+
+***NOTE:
+- Spark does not support broadcasting RDDs.
+
+        scala> sc.broadcast(sc.range(0, 10))
+        java.lang.IllegalArgumentException: requirement failed: Can not directly broadcast RDDs; instead, call collect() and broadcast the result.
+         at scala.Predef$.require(Predef.scala:224)
+         at org.apache.spark.SparkContext.broadcast(SparkContext.scala:1392)
+         ... 48 elided
+   
+SparkEnv — Spark Runtime Environment
+- It is the runtime environment with Spark’s public services that interact with each other to establish a distributed computing platform for a Spark application.
+- SparkEnv is represented by a SparkEnv object having all required runtime services for a running Spark application.
+- SparkEnv uses separate environments for the driver and executors.
+
+SparkEnv — Spark Configuration
+- It is object which helps to set Spark application specific confirguration like master url, app name etc and so on.
+        scala> val conf = new SparkConf()
+                .setMaster("local[2]")
+                .setAppName("CountingSheep")
+        scala> val sc = new SparkContext(conf)
+
+
 block eviction in spark?
 Result job that computes a ResultStage to execute an action.? - https://medium.com/@gkadam2011/beneath-rdd-resilient-distributed-dataset-in-apache-spark-260c0b7250c6
-Types of RDDs?
 Catalyst Optimizer?
 Tungsten Engine?
-
+How to solve data Skewness - https://dzone.com/articles/why-your-spark-apps-are-slow-or-failing-part-ii-da
