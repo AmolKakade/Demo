@@ -15,6 +15,91 @@ https://mallikarjuna_g.gitbooks.io/spark/content/spark-dagscheduler.html
 https://luminousmen.com/post/spark-anatomy-of-spark-application
 https://spark.apache.org/docs/latest/cluster-overview.html
 
+RDD ( Resilient Distributed Dataset)
+- RDD is basic abstraction in Spark. It represents an immutable, distributed, partitioned collection of elements that can be operated on in parallel.
+- Meaning of RDD:
+    Resilient - It is fault-tolerant with the help of RDD lineage graph and so able to recompute missing or damaged partitions due to node failures.
+    Distributed -  Data residing on multiple nodes in a cluster.
+    Dataset - Collection of partitioned data
+- RDD has the following additional traits:
+    In-Memory  - data inside RDD is stored in memory as much SIZE and long TIME as possible.
+    Immutable  - It does not change once created and can only be transformed using transformations to new RDDs.
+    Lazy evaluated  - Data inside RDD is not available or transformed until an ACTION is executed that triggers the execution.
+    Cacheable  - You can hold all the data in a persistent storage like memory (default and the most preferred) or disk (the least preferred due to access speed).
+    Parallel  - Process data in parallel.
+    Typed. - Values in a RDD have types, e.g. RDD[Long] or RDD[(Int, String)].
+    Partitioned. -  Data inside a RDD is partitioned (split into partitions) and then distributed across nodes in a cluster (one partition per JVM that may or may not correspond to a single node).
+- RDDs support two kinds of operations:
+  1. transformations - lazy operations that return another RDD.
+  2. actions 
+    - Actions are RDD operations that produce non-RDD values. 
+    - Simply actions evaluates the RDD lineage graph.
+    - Actions run jobs using SparkContext.runJob or directly DAGScheduler.runJob.
+    - They materialize a value in a Spark program. 
+    - Actions are synchronous.
+****    - Actions are one of two ways to SEND DATA FROm Executor TO Driver (the other being accumulators).
+    - Few Actions are;
+          aggregate(), collect(), count(), first(), fold(), foreach(), foreachPartition(), max(), min(), reduce(), saveAs* actions (e.g. saveAsTextFile, saveAsHadoopFile etc),
+          take(), takeOrdered(), top() etc
+
+Partition in RDD
+- A partition (aka split) is a logical chunk of a large distributed data set.
+*********** - By default number of partitions = number of available blocks HDFS ( if reading data from HDFS )
+*********** - By default number of partitions = number of available cores on machine ( example below )
+- Data Locality - Spark tries to read data into an RDD from the nodes that are close to it.
+
+E.g. 
+
+scala> val df = sc.parallelize(1 to 100).count        // This code line on Spark UI shows 8 tasks are launched 
+res0: Long = 100
+
+scala> df.partitions.size                             // Gives number of partitions as 8
+
+ints = val df = sc.parallelize(1 to 100 , 2).count.   // In this case we specified number of partitions to be 2
+
+******** V.IMP******
+NOTE: 
+- The reason for 8 Tasks in Total is that machine is 8-core laptop and FEW partitions could be empty. 
+- By default the number of partitions = number of all available cores.
+- The maximum size of a partition = available memory of an executor.
+- Spark can only run 1 concurrent task, for every partition of an RDD, up to the number of cores in your cluster. 
+- So if you have a cluster with 50 cores, you want your RDDs to at least have 50 partitions (and probably 2-3x times that).
+- In the first RDD transformation, e.g. reading from a file using sc.textFile(path, partition), the partition parameter will be applied to all further transformations and actions on this RDD.
+
+COMPRESSED file read from HDFS 
+- For Compressed files (file.txt.gz not file.txt or similar) Spark don't do split by default.
+- When using textFile() with compressed files, Spark makes an RDD with only 1 partition.
+- To do so we have to use repartition() specifically as given below.
+
+repartition() Transformation
+- With the computation repartition(5) causes 5 tasks to be started using NODE_LOCAL data locality.
+- It does SHUFFLING
+
+coalesce() Transformation
+- coalesce(numPartitions: Int, shuffle: Boolean = false)
+- The coalesce() transformation is used to change the number of partitions. 
+***- It can trigger RDD shuffling depending on the shuffle flag (DISABLED by default, i.e. false).
+- We can use toDebugString() to see lineage gragh.
+
+HashPartitioner ( org.apache.spark - Class HashPartitioner)
+- It us subclass of org.apache.spark.Partitioner
+- HashPartitioner partitions RDD to configurable number of partitions to shuffle data around.
+- Methods of HashPartitioner
+    numPartitions() - Partitions data into exactly number number of partitions specified
+    getPartition()  - Returns number of partitions
+
+RDD shuffling
+- Shuffling is the process of data transfer between stages.
+- Shuffling does redistribution of data across partitions (aka repartitioning).
+- It may or may not cause moving data across JVM processes.
+
+***** - Avoid shuffling at all cost. Think about ways to leverage existing partitions. Leverage partial aggregation to reduce data transfer. 
+
+NOTE:
+- Shuffling doesn’t change the number of partitions, but change their content.
+- Avoid using groupByKey(). Instead use reduceByKey() or combineByKey().
+    groupByKey() - shuffles all the data, which is slow.
+    reduceByKey() - shuffles only the results of sub-aggregations in each partition of the data.
 
 Driver
 - It is the process running the main() function of the application and creating the SparkContext.
@@ -42,12 +127,11 @@ SparkContext ( org.apache.spark -  class SparkContext extends Logging )
 - Spark Context stops working after the Spark application is finished.
 
  SparkSession 
- - SparkSession is the entry point to Spark SQL. 
- - It is the very first object you have to create to start developing Spark SQL applications.
+- SparkSession is the entry point to Spark SQL. 
+- It is the very first object you have to create to start developing Spark SQL applications.
+- You use the SparkSession.builder method to create an instance of SparkSession.
  **** - SparkSession has merged SQLContext and HiveContext in one object as of Spark 2.0.0. 
- 
-    - You use the SparkSession.builder method to create an instance of SparkSession.
-    
+     
   import org.apache.spark.sql.SparkSession
   val spark: SparkSession = SparkSession.builder
   .appName("My Spark Application")  // optional and will be autogenerated if not specified
@@ -106,8 +190,15 @@ Task
 - A unit of work that will be sent to one executor.
 **** - A single task will operate on a single partition of RDD
 
-Job
-- A parallel computation consisting of multiple tasks that gets spawned in response to a Spark action (e.g. save, collect)
+Job (private[spark] class org.apache.spark.scheduler.ActiveJob)( Ref link : https://mallikarjuna_g.gitbooks.io/spark/content/spark-dagscheduler-jobs.html)
+- A parallel computation consisting of multiple tasks that gets spawned in response to a Spark action (e.g. save, collect). Actions are EXPLAINED Above.
+- RDD actions submit jobs to DAGScheduler
+- A job can be one of two logical types;
+    1. Map-stage job -  it computes the map output files for a ShuffleMapStage.
+    2. Result job - it computes a ResultStage to execute an action.
+
+NOTE:
+- Not all partitions have always to be computed for ResultStages for actions like first() and lookup(). 
 
 Stage
 - Each job gets divided into smaller sets of tasks called stages that depend on each other (similar to the map and reduce stages in MapReduce)
@@ -127,6 +218,7 @@ Stage
         - It writes map output files for a shuffle. It can also be the final stage in a job in Adaptive Query Planning / Adaptive Scheduling.
     2. ResultStage 
         - It is the final stage that executes a Spark action in a user program by running a function on an RDD.
+        - ResultStage applies a function on one or many partitions of the target RDD to compute the result of an action.
 
 TaskSet 
 - collection of tasks that belong to a single stage and a stage attempt. 
@@ -189,3 +281,5 @@ Ref link - https://mallikarjuna_g.gitbooks.io/spark/content/spark-blockmanager.h
 
 What is SparkEnv?
 block eviction in spark?
+Result job that computes a ResultStage to execute an action.? - https://medium.com/@gkadam2011/beneath-rdd-resilient-distributed-dataset-in-apache-spark-260c0b7250c6
+Types of RDDs?
