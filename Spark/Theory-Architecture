@@ -30,19 +30,81 @@ RDD ( Resilient Distributed Dataset)
     Typed. - Values in a RDD have types, e.g. RDD[Long] or RDD[(Int, String)].
     Partitioned. -  Data inside a RDD is partitioned (split into partitions) and then distributed across nodes in a cluster (one partition per JVM that may or may not correspond to a single node).
 - RDDs support two kinds of operations:
-  1. transformations - lazy operations that return another RDD.
+  1. transformations
+    - lazy operations(map, flatMap, filter, reduceByKey, join, cogroup, etc.) that return another RDD.
+    - There are two kinds of transformations: narrow transformation, wide transformation.
+        1. Narrow Transformations:
+            - Common Narrow transformations are map, flatMap, MapPartitions, filter, sample & union
+            - In narrow transformations the input & output data stays in the same partition, i.e. it is self-sufficient and SHUFFLING won't happen.
+            - EACH partition in OUTPUT RDD has partitions with records that originate from a SINGLE partition in the parent RDD.
+        2. Wide Transformation:
+            - Wide transformations are also known as SHUFFLE TRANSFORMATIONS because data shuffle is required to process the data.
+            - Common wide transformation are — gropupByKey, ReduceByKey, coalesce, repartition, join, intersection
+            - The data required to compute the records in may live in many partitions of the parent RDD.
   2. actions 
     - Actions are RDD operations that produce non-RDD values. 
     - Simply actions evaluates the RDD lineage graph.
-    - Actions run jobs using SparkContext.runJob or directly DAGScheduler.runJob.
+    - Actions TRIGGERS jobs using SparkContext.runJob or directly DAGScheduler.runJob.
     - They materialize a value in a Spark program. 
     - Actions are synchronous.
-****    - Actions are one of two ways to SEND DATA FROm Executor TO Driver (the other being accumulators).
+****    - Actions are one of two ways to SEND DATA FROM Executor TO Driver (the other being accumulators).
     - Few Actions are;
           aggregate(), collect(), count(), first(), fold(), foreach(), foreachPartition(), max(), min(), reduce(), saveAs* actions (e.g. saveAsTextFile, saveAsHadoopFile etc),
           take(), takeOrdered(), top() etc
+          
+**** 
+- Intrinsic properties of the RDD: ( ref link https://medium.com/@gkadam2011/beneath-rdd-resilient-distributed-dataset-in-apache-spark-260c0b7250c6)
+            abstract class RDD[T] {
+                def compute(split: Partition, context: TaskContext): Iterator[T]
+                def getPartitions: Array[Partition]
+                def getDependencies: Seq[Dependency[_]]
+                def getPreferredLocations(split: Partition): Seq[String] = Nil
+                val partitioner: Option[Partitioner] = None
+                }
+                
+    getDependencies() - List of parent RDD’s that are the dependencies of the RDD.
+    An array of partitions that a dataset is divided to.
+    compute() - A compute function to do a computation on partitions.
+    An optional Partitioner that defines how keys are hashed, and the pairs partitioned (for key-value RDDs)
+    Optional locality info, i.e. hosts for a partition where the records live or are the closest to read from.
 
-Partition in RDD
+Types of RDDs
+- There are some of the most interesting types of RDDs:
+    ParallelCollectionRDD - sc.parallelize(1 ro 10, 2)
+    CoGroupedRDD
+    HadoopRDD  - RDD that provides core functionality for reading data stored in HDFS using the older MapReduce API e.g. use case is the return RDD of SparkContext.textFile.
+    MapPartitionsRDD — a result of calling operations like map, flatMap, filter, mapPartitions, etc.
+    CoalescedRDD — a result of repartition or coalesce transformations.
+    ShuffledRDD — a result of shuffling, e.g. after repartition or coalesce transformations.
+    PipedRDD — an RDD created by piping elements to a forked external process.
+    PairRDD (implicit conversion by PairRDDFunctions) that is an RDD of key-value pairs that is a result of groupByKey and join operations.
+    DoubleRDD (implicit conversion as org.apache.spark.rdd.DoubleRDDFunctions) that is an RDD of Double type.
+    SequenceFileRDD (implicit conversion as org.apache.spark.rdd.SequenceFileRDDFunctions) that is an RDD that can be saved as a SequenceFile.
+- Appropriate operations of a given RDD type are automatically available on a RDD of the right type, e.g. RDD[(Int, Int)], through implicit conversion in Scala.
+
+Limitations of RDD
+- Not optimized — When working with structured data, RDDs cannot take advantages of Spark’s advanced optimizers including catalyst optimizer and Tungsten execution engine. Developers need to optimize each RDD based on its attributes.
+- Schema Infer — Unlike Dataframe and datasets, RDDs DON'T INFER the schema of the ingested data and requires the user to specify it.
+- Slow Performance — Being in-memory JVM objects, RDDs involve the overhead of Garbage Collection and Java Serialization which are expensive when data grows.
+- Slow for non-JVM languages like python
+
+
+Ways to Create RDD
+1. Using parallelized collection like below;
+ E.g.
+        val data = Array(1, 2, 3, 4, 5)
+        sc.paralleleize(data, 2)
+        sc.makeRDD(data)
+        sc.range(1 to 100 by 2, 5)
+2. From external datasets:
+- Spark RDD’s can be created from any storage source supported by Hadoop, including your local file system, HDFS, Cassandra, HBase, Amazon S3 etc.
+- Text file RDDs can be created using sc.textFile(name, partitions)method.
+
+3. From existing apache spark RDDs.
+- By using transformation on existing RDDs.
+
+
+Partition in RDD( number of partitions/tasks/relationship between them)
 - A partition (aka split) is a logical chunk of a large distributed data set.
 *********** - By default number of partitions = number of available blocks HDFS ( if reading data from HDFS )
 *********** - By default number of partitions = number of available cores on machine ( example below )
@@ -276,6 +338,46 @@ Ref link - https://mallikarjuna_g.gitbooks.io/spark/content/spark-blockmanager.h
 - Blockmanager is used to manage the internal reading and writing of local memory and disks
 
 
+SQLContext
+- Entry point for SparkSQL module which deals with structured data in SQL way.
+- Allows us to connect to different Data Sources to write or read data from them.
+- Once SQLContext is initialised, the user can then use it in order to perform various “sql-like” operations over Datasets and Dataframes.
+- In order to create a SQLContext, you first need to instantiate a SparkContext as shown below:
+
+import org.apache.spark.{SparkContext, SparkConf}
+import org.apache.spark.sql.SQLContextval sparkConf = new SparkConf() \
+    .setAppName("app") \
+    .setMaster("yarn")
+val sc = new SparkContext(sparkConf)
+val sqlContext = new SQLContext(sc)
+
+
+HiveContext
+- HiveContext is a Superset of SQLContext.
+- Working on Hive table in Spark with Spark version less than 2.x needs HiveContext.
+- It gives access of Hive tables, metatastores etc to Spark.
+- For Spark 1.5+, HiveContext also offers support for window functions.
+
+import org.apache.spark.{SparkConf, SparkContext}
+import org.apache.spark.sql.hive.HiveContextval sparkConf = new SparkConf() \
+    .setAppName("app") \
+    .setMaster("yarn")
+val sc = new SparkContext(sparkConf)
+val hiveContext = new HiveContext(sc)hiveContext.sql("select * from tableName limit 0")
+
+
+SparkSession
+- Spark 2.0 introduced SparkSession and it is a combination of all these different contexts.
+- Note that the old SQLContext and HiveContext are kept for backward compatibility.
+- Additionally, it gives to developers immediate access to SparkContext.
+
+import org.apache.spark.sql.SparkSessionval sparkSession = SparkSession \
+    .builder() \
+    .appName("myApp") \
+    .enableHiveSupport() \
+    .getOrCreate()// Two ways you can access spark context from spark session
+val spark_context = sparkSession._sc                                                // Approach 1
+val spark_context = sparkSession.sparkContext                                       // Approach 2
 
 
 
@@ -283,3 +385,6 @@ What is SparkEnv?
 block eviction in spark?
 Result job that computes a ResultStage to execute an action.? - https://medium.com/@gkadam2011/beneath-rdd-resilient-distributed-dataset-in-apache-spark-260c0b7250c6
 Types of RDDs?
+Catalyst Optimizer?
+Tungsten Engine?
+
