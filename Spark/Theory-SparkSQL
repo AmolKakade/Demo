@@ -1,4 +1,5 @@
 Spark SQL
+------------------------------------------------------------------------------------------------------------------------------------------------------
 - Provides a SQL support for structured and semi-structured data in optimized way.
 — Spark SQL offers querying and persisting structured and semi-structured data using structured queries.
 - Spark SQL job end up as a tree of Catalyst expressions with further optimizations along the way to your large distributed data sets.
@@ -69,10 +70,9 @@ E.g. **********
     - Tungsten does CODE GENERATION AT COMPILE TIME and generates JVM bytecode to access Tungsten-managed memory structures that gives a very fast access.
 
 **** 
-Joins in SparkSQL
-Ref link: https://medium.com/@achilleus/https-medium-com-joins-in-apache-spark-part-3-1d40c1e51e1c AND 
-https://medium.com/@achilleus/https-medium-com-joins-in-apache-spark-part-2-5b038bc7455b
-
+Joins in SparkSQL ( Ref link: https://medium.com/@achilleus/https-medium-com-joins-in-apache-spark-part-3-1d40c1e51e1c AND 
+https://medium.com/@achilleus/https-medium-com-joins-in-apache-spark-part-2-5b038bc7455b  )
+------------------------------------------------------------------------------------------------------------------------------------------------------
 1. BroadcastHashJoin (BHJ): 
       - Usually used when the data on one side of the join is very small (a few MBs). 
       - The smaller table is broadcasted to every executor (Exchange), and then joined with the bigger table, using a Hash Join (Join)
@@ -260,4 +260,16 @@ scala> df1.join(df2,df1("id") <=> df2("id")).drop(df1("id")).show
 
 
 Spark catalog?
- 
+Data Skewness handling? Salting?
+Optimization?
+
+
+Spark SQL defines three types of functions:
+
+    Built-in functions or User-Defined Functions (UDFs) that take values from a single row as input to generate a single return value for every input row.
+
+    Aggregate functions that operate on a group of rows and calculate a single return value per group.
+
+    Windowed Aggregates (Windows) that operate on a group of rows and calculate a single return value for each row in a group.
+
+
