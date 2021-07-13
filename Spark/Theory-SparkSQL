@@ -1,0 +1,263 @@
+Spark SQL
+- Provides a SQL support for structured and semi-structured data in optimized way.
+— Spark SQL offers querying and persisting structured and semi-structured data using structured queries.
+- Spark SQL job end up as a tree of Catalyst expressions with further optimizations along the way to your large distributed data sets.
+- Spark SQL offers performance query optimizations using
+    1. Catalyst’s Logical Query Plan Optimizer
+    2. Code generation (that could often be better than your own custom handmade code!) 
+    3. Tungsten execution engine - It has its own Internal, In-memory, Binary Row Format which uses sun.misc.Unsafe.
+ 
+ Query Plan
+ - When we type, df.explain(), we usually see four plans as provided by Spark:
+    Unresolved Logical Plan
+    Resolved Logical Plan / Analysed Plan / Logical Plan
+    Optimized Logical Plan
+    Physical Plan
+- These four plans are generated over three phases by Spark’s optimization engine - Catalyst Optimizer. 
+- The Catalyst optimizer provides both rule-based (using heuristics) as well as cost-based optimizations.
+- Spark transforms SQL query like
+  
+  SQL -> Unresolved Logical Plan -> Analysis -> Logical Plan -> Optimized Logical Plan -> Physical Plan -> Selected Physical Plan( with Cost Model applied) -> RDD(with Codegen)
+
+Analysis
+- Optimizer cross-checks Unresolved Logical Plan with the Catalog, to verify if the query is correct.
+- Analyzer tries to identify the data type, existence, and location of the columns specified by the query. 
+- The Analyzer also validates if the operation on each column is applicable based on the data type.
+- If the query resolves successfully, anlyzer add  additional information like the data type of the column, the table the column belongs to, etc to Query Plan.
+
+Logic Optimization
+- Catalyst optimizer optimizes the query using rule-based optimization to derive an Optimized Logical Plan.
+
+Physical planning
+- Optimizer takes the optimized logical plan and generates one or more physical plans. 
+- During this phase, Spark decides on which algorithm must be used for every operator.
+- For example, the decision on which join algorithm must be used, whether SortMergeJoin or BroadcastHashJoin, etc, is made at this stage.
+- The best plan is then selected using a cost-based model (comparison between model costs).
+
+Code generation
+- Finally, once the best physical plan is chosen for a SQL, Spark uses Tungsten Backend to generate Java bytecode.
+
+
+Tungsten Execution Backend
+------------------------------------------------------------------------------------------------------------------------------------------------------
+- The goal of Project Tungsten is to improve Spark execution by optimizing Spark jobs for CPU and MEMORY EFFICIENCY.
+
+E.g. **********
+      // million integers
+      scala> val intsMM = 1 to math.pow(10, 6).toInt
+
+      // that gives ca 3.8 MB in memory
+      scala> sc.parallelize(intsMM).cache.count
+      res0: Long = 1000000
+
+      // that gives ca 998.4 KB in memory
+      scala> intsMM.toDF.cache.count                      // SEE the size. Dataframe and SparkSQL uses Tungsten as compared to RDD
+      res1: Long = 1000000
+
+- Tungsten optimization features:
+    1. Off-Heap Memory Management
+      - Uses binary, in-memory data representation aka Tungsten row format by using sun.misc.Unsafe instead of JVM.
+****  - Uses its own OWN off-heap binary memory management which improves a JVM garbage collection alotinstead of JVM objects.    
+
+    2. Cache Locality
+    - Tungsten uses algorithms and cache-aware data structures that exploit the physical machine caches at different levels - L1, L2, L3.
+
+    3. Whole-Stage Code Generation (aka CodeGen)
+    - Whole-Stage Code Generation is enabled by default.
+    - It improves the execution performance of a query by collapsing a query tree into a single optimized function.
+    - It eliminates virtual function calls and leverages CPU registers for intermediate data.
+    - Tungsten does CODE GENERATION AT COMPILE TIME and generates JVM bytecode to access Tungsten-managed memory structures that gives a very fast access.
+
+**** 
+Joins in SparkSQL
+Ref link: https://medium.com/@achilleus/https-medium-com-joins-in-apache-spark-part-3-1d40c1e51e1c AND 
+https://medium.com/@achilleus/https-medium-com-joins-in-apache-spark-part-2-5b038bc7455b
+
+1. BroadcastHashJoin (BHJ): 
+      - Usually used when the data on one side of the join is very small (a few MBs). 
+      - The smaller table is broadcasted to every executor (Exchange), and then joined with the bigger table, using a Hash Join (Join)
+      - NO SHUFFLING involved in this and can be much quicker.
+****  - To enforce BroadcastHashJoin we can use the broadcast HINT.
+          
+          scala> customer.join(broadcast(payment),“customerId”)                // Here we used hint broadcast()
+      
+      spark.sql.autoBroadcastJoinThreshold - This can be configured to set the Maximum size in bytes for a dataframe to be broadcasted
+        E.g.
+        scala> spark.conf.get(“spark.sql.autoBroadcastJoinThreshold”)
+        res0: String = 10485760
+            - (-1) will disable broadcast join
+             - Default is 10485760 ie 10MB
+          
+      spark.broadcast.compress - Used to configure whether to compress the data before sending it. 
+          - It uses the compression specified in the spark.io.compression.codec config and the default is lz4. 
+          - We can use other compression codecs such as lz4,lzf, snappy, ZStandard.
+          - spark.broadcast.compress is TRUE BY DEFAULT.
+       
+      customer.join(payment,“customerId”).queryExecution.executedPlan        // Here we NO hint is used so no guarantee of BroadcastHashJoin
+      
+NOTE:
+- If a broadcast hint is specified, the join side with the hint will be broadcasted irrespective of autoBroadcastJoinThreshold. 
+- If BOTH SIDES of the join have the broadcast HINTS, the side with a smaller estimated physical size will be broadcasted. 
+- If there is NO HINT and if the estimated physical size of the table < autoBroadcastJoinThreshold then that table is broadcasted to all the executor nodes.  
+
+2. ShuffledHashJoin (SHJ): 
+      - Used when the data on one side of the join is at least 3 times smaller than side AND the average partition size is small enough to broadcast. 
+      - During this join, the PARTITIONS are broadcasted (Exchange) and joined using Hash Join (Join).
+      - Shuffle hash join breaks 1 big join of 2 tables into smaller chunks of the localized relatively smaller branch. 
+      - It has 2 phases
+          1. Shuffle:
+              - Shuffles data across the partitions from both tables/dataframes. 
+              - If 2 tables have the same keys, they end up in the same partition so that the data required for joins is available in the same partition.
+          2. Hash Join: 
+              - The data on each partition performs a classic single node hash join algorithm based on SHUFFLED partitions in first phase.
+
+NOTE:
+- Performance of this is based on the distribution of keys in the dataset.
+- Prefer EmpID as join key over DeptID as EmpID will have more values, so more parallelism.
+- This is not well suited for joins that wouldn’t fit in memory.
+- By default, SortMergeJoin is preffered over ShuffledHashJoin.
+- Shuffle Hash join will be used as the join strategy only when;
+      spark.sql.join.preferSortMergeJoin is set to FALSE
+      AND the cost to build a hash map is less than sorting the data. 
+
+ 3. SortMergeJoin (SMJ): 
+  - SortMergeJoin is the default join strategy if the matching join keys are sortable and not eligible for broadcast join or shuffle hash join.
+  - This happens when we cannot apply either of the above two algorithms. 
+  - During this join, the data on both sides of the join are sorted (2 Sort steps) and then joined using MergeSort (Join).
+  - SCALABLE: What makes it scalable is that it can spill the data to the disk and doesn’t require the entire data to fit inside the memory.
+  - It has 3 phases:
+      Shuffle Phase: The 2 large tables are REPARTIONED as per the join keys across the partitions in the cluster.
+      Sort Phase: SORT the data within each partition parallelly.
+      Merge Phase: Join the 2 SORTED + REPARTIONED data. 
+
+NOTE: 
+- Performance-wise BHJ is better than SHJ which is better than SMJ
+- Sometimes spark by default chooses Merge Sort Join which might not be always ideal.
+- SortMergeJoin is more scalable because of spilling 
+
+4. CrossJoin/CartesianJoin (SMJ): 
+  - This type of join is NOT RECOMMENEDED UNTIL NECESSARY.
+  - Join of table-1(m rows) with table-2(n rows) results total(m * n) rows
+  - This join will be triggered when no join key is specified
+  
+  E.g.
+      scala> customer.join(payment)                                         // NO JOIN KEY SPECIFIED *****
+      scala> customer.join(payment).show
+        org.apache.spark.sql.AnalysisException: Detected implicit cartesian product for INNER join between logical plans
+        Project [_1#17 AS customerId#20, _2#18 AS name#21]
+        ....
+        Join condition is missing or trivial.                // SPARK Gives AnalysisException just to inform user regarding accidental usage of CrossJoin
+**** - So to use CrossJoin, we have to set spark.sql.crossJoin.enabled=true
+
+5. BroadcastNestedLoopJoin
+- This type of join is chosen when NO JOINING KEYS are specified AND either has a broadcast hint 
+OR if 1 side of the join could be broadcasted and is less than spark.sql.autoBroadcastJoinThreshold.
+- This type of join is ALSO the final fall back option if no join keys are specified, and is not an inner join. 
+- This could be very slow and can cause OutOfMemoryExceptions!
+
+6. LeftSemi Join
+  - Returns only the COLUMNS from the left side that has a match on the right side based on the condition provided for the join statement.
+  - This can also be achieved in subquery kind of queries in conjunction with IN/EXISTS in SQL.
+  - Advantage of LeftSemiis it restricts the amount of data that is read from the right side table.
+  
+  E.g.
+scala> payment.show
++---------+----------+------+
+|paymentId|customerId|amount|
++---------+----------+------+
+|        1|       101|  2500|
+|        2|       102|  1110|
+|        3|       103|   500|
+|        4|       104|   400|
+|        5|       105|   150|
+|        6|       106|   450|
++---------+----------+------+
+scala> customer.show
++----------+----+
+|customerId|name|
++----------+----+
+|       101| Jon|
+|       102|Aron|
+|       103| Sam|
++----------+----+
+scala> payment.join(customer, payment("customerId") === customer("customerId"), "leftsemi").show             // leftsemi is used
++---------+----------+------+
+|paymentId|customerId|amount|
++---------+----------+------+
+|        1|       101|  2500|
+|        3|       103|   500|
+|        2|       102|  1110|
++---------+----------+------+
+
+NOTE:
+- Joined output only consists of data from the Payment(Left) table which has a match for it in the Customer(Right) table. 
+- "name" column from the Customer table is not returned even for the matching customerId.
+ 
+7. LeftAnti-Join 
+- Does exactly reverse as of LeftSemiJoin in terms of ROWS selection.
+- IT ALSO ONLY GIVES columns from left table.
+- The output would just return the data from LEFT TABLE that DOESN'T HAVE MATCH ON RIGHT side table.
+
+ scala> payment.join(customer, payment("customerId") === customer("customerId"), "leftanti").show()       // leftanti is used
++---------+----------+------+
+|paymentId|customerId|amount|
++---------+----------+------+
+|        5|       105|   150|
+|        6|       106|   450|
+|        4|       104|   400|
++---------+----------+------+
+
+8. SelfJoin
+- In self join, we join the dataframe with itself. 
+- USE OF ALIASING is must to avoid column name collisions.
+
+E.g.
+val employee1 = spark.createDataFrame(Seq(
+  (1,"ceo",None),
+  (2,"manager1",Some(1)),
+  (3,"manager2",Some(1)),
+  (101,"Amy",Some(2)),
+  (102,"Sam",Some(2)),
+  (103,"Aron",Some(3)),
+  (104,"Bobby",Some(3)),
+  (105,"Jon", Some(3))
+)).toDF("employeeId","employeeName","managerId")
+
+scala> val selfJoinedEmp = employee1.as("e").join(employee1.as("m"),$"m.employeeId" === $"e.managerId")   // SelfJoin is NOT USED *********
+
+
+Joins on columns with nulls ***********
+- If we wanted to join on columns which have NULLS in it. By default, Spark would skip these columns.
+- Say I want to join, df1 and df2 on id column which has nulls in it. The result would not have the null values as shown below.
+
+scala> df1.show              scala> df2.show
++----+-----+                 +----+-----+
+|  id| name|                 |  id| dept|
++----+-----+                 +----+-----+
+| 123|name1|                 |null|sales|
+| 456|name3|                 | 223|Legal|
+|null|name2|                 | 456|   IT|
++----+-----+                 +----+-----+
+
+scala> df1.join(df2, Seq("id")).show
++---+-----+-----+
+| id| name| dept|
++---+-----+-----+
+|123|name1|sales|
+|456|name3|   IT|
++---+-----+-----+
+
+- We have to use Equality Test Operator(<=>) instead of ===.
+scala> df1.join(df2,df1("id") <=> df2("id")).drop(df1("id")).show
++-----+----+-----+
+| name|  id| dept|
++-----+----+-----+
+|name1| 123|sales|
+|name3|    |   IT|
+|name2|null|sales|
++-----+----+-----+
+
+
+
+Spark catalog?
+ 
