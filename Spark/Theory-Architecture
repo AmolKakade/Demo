@@ -1,11 +1,3 @@
-Driver, Executor, Various Contexts, architecture, Spark Master
-RDD, DataSet
-SparkSession
-Stages, Job, Tasks
-DAG, DAG Scheduler
-Encoders
-SparkConf
-Block Manager
 Product types?
 what is the need of directed acyclic graph in Spark, how to create DAG in Spark and how it helps in achieving fault tolerance.
 difference between Apache Spark and Hadoop MapReduce
