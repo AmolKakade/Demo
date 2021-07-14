@@ -1,0 +1,28 @@
+Frequently used commands.
+Example
+Actions
+Nodes
+
+
+Ref link:- https://www.interviewgrid.com/interview_questions/bigdata/bigdata_oozie
+
+Oozie
+- Open source, XML based, web based workflow scheduler.
+- Componets of Oozie are: Coordinator, workflow, properties files
+- life-cycle : PREP, RUNNING, SUCCEEDED, KILLED, FAILED
+- Oozie will follow DAG and will never have cycle.           **************
+- Control Nodes
+    - Various nodes are START, KILL, END.
+    - Nodes call Actions
+- Actions
+- 
+
+Oozie Metastore
+- Oozie stores all information about running and completed workflows, coordinators, and bundle jobs are stored in a relational database.
+- By default Oozie supports an embedded PostgreSQL database.
+- However, Cloudera strongly recommends that you use an external database for production systems. WE ARE USING MySQL.
+- Stpes:
+    - mysql -u root -p
+    - mysql> create database oozie default character set utf8;
+    - mysql> grant all privileges on oozie.* to 'oozie'@'localhost' identified by 'oozie';
+    - mysql> grant all privileges on oozie.* to 'oozie'@'%' identified by 'oozie';
