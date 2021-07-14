@@ -258,18 +258,242 @@ scala> df1.join(df2,df1("id") <=> df2("id")).drop(df1("id")).show
 +-----+----+-----+
 
 
+Spark catalog
+- Catalog is the interface for managing a metastore (aka metadata catalog) of relational entities.
+- Manages relational entities like - database, tables, functions, table columns and temporary views etc.
+- Catalog is available using SparkSession.catalog property.
+E.g.
+        scala> :type spark
+        org.apache.spark.sql.SparkSession
 
-Spark catalog?
-Data Skewness handling? Salting?
-Optimization?
+        scala> :type spark.catalog
+        org.apache.spark.sql.catalog.Catalog
+- Mostly used methids are;
+cacheTable() - cache's table
+clearCache() - clears the cached table from memory
+createTable()
+currentDatabase()
+databaseExists()
 
 
-Spark SQL defines three types of functions:
+TempView vs GlobalTempView
+- TempView- Temporary views in Spark SQL are session-scoped and will disappear if the session that creates it terminates.
+- GlobalTempView - These are shared among all sessions and keep alive until the Spark application terminates.
+- Global temporary view is tied to a system preserved database global_temp, and we must use the qualified name to refer it.
 
-    Built-in functions or User-Defined Functions (UDFs) that take values from a single row as input to generate a single return value for every input row.
-
-    Aggregate functions that operate on a group of rows and calculate a single return value per group.
-
-    Windowed Aggregates (Windows) that operate on a group of rows and calculate a single return value for each row in a group.
+df.createGlobalTempView("people")
 
 
+Types of functions in Spark
+1. Standard Functions — functions object
+- org.apache.spark.sql.functions object offers many built-in functions to process values in Columns in Datasets.
+        
+scala> import org.apache.spark.sql.functions._
+
+scala> Seq(Array(0,1,2)).toDF("array").withColumn("num", explode('array)).show              //explode()
++---------+---+
+|    array|num|
++---------+---+
+|[0, 1, 2]|  0|
+|[0, 1, 2]|  1|
+|[0, 1, 2]|  2|
++---------+---+
+
+*******
+User Defined functions ( ref link - https://docs.databricks.com/spark/latest/spark-sql/udf-scala.html)
+- User defined function operate on COLUMNS and we can use them both with DataFrame API as well as Spark SQL
+- Define, register and use with Spark SQL
+    1. Define and Register UDF
+        
+        scala> val squared = (s: Long) => {
+            s * s
+         }
+
+        scala> spark.udf.register("square", squared)                                    // Register as square() in Spark SQL.
+        
+    2. Use it Spark SQL
+        scala> spark.range(1, 20).createOrReplaceTempView("test")
+        scala> spark.sql(select id, square(id) as id_squared from test)
+
+- Define and Use of UDF with Dataframe API
+       
+        scala> import org.apache.spark.sql.functions.{col, udf}
+        scala> val squared = udf((s: Long) => s * s)
+        scala> spark.range(1, 20).select(squared(col("id")) as "id_squared").show()
+
+2. Aggregation functions
+- You can group records in a Dataset using a condition to compute aggregates (over a collection of grouped records).
+E.g.-1
+scala> spark.range(10).agg(sum('id) as "sum").show                           // Aggregation without group
++---+
+|sum|
++---+
+| 45|
++---+
+
+E.g.-2
+scala> val ints = 1 to math.pow(10, 3).toInt
+scala> val dataset = ints.toDF("n").withColumn("m", 'n % 2)                  
+scala> dataset.groupBy('m).agg(sum('n)).show                                        // Aggregation with group. sum()
++---+------+
+|  m|sum(n)|
++---+------+
+|  1|250000|
+|  0|250500|
++---+------+
+
+E.g.-3
+scala> dataset.show
++----+---------+-----+
+|name|productId|score|
++----+---------+-----+
+| aaa|      100| 0.12|
+| aaa|      200| 0.29|
+| bbb|      200| 0.53|
+| bbb|      300| 0.42|
++----+---------+-----+
+
+scala> dataset.groupBy('name).avg().show                                            // Aggregation with group. avg()
++----+--------------+----------+
+|name|avg(productId)|avg(score)|
++----+--------------+----------+
+| aaa|         150.0|     0.205|
+| bbb|         250.0|     0.475|
++----+--------------+----------+
+
+scala> dataset.groupBy('name, 'productId).agg(Map("score" -> "avg")).show           // Aggregation with group. avg()
++----+---------+----------+
+|name|productId|avg(score)|
++----+---------+----------+
+| aaa|      200|      0.29|
+| bbb|      200|      0.53|
+| bbb|      300|      0.42|
+| aaa|      100|      0.12|
++----+---------+----------+
+
+scala> dataset.groupBy('name).count.show                                            // Aggregation with group. count()
++----+-----+
+|name|count|
++----+-----+
+| aaa|    2|
+| bbb|    2|
++----+-----+
+
+scala> dataset.groupBy('name).max("score").show                                     // Aggregation with group. max()
++----+----------+
+|name|max(score)|
++----+----------+
+| aaa|      0.29|
+| bbb|      0.53|
++----+----------+
+
+scala> dataset.groupBy('name).sum("score").show                                     // Aggregation with group. sum()
++----+----------+
+|name|sum(score)|
++----+----------+
+| aaa|      0.41|
+| bbb|      0.95|
++----+----------+
+
+
+3. Windowed Aggregates
+- Window functions perform a calculation on a group of records (called a window) that are in some relation to the current record. 
+- They calculate values for every records in a window.
+- Windowed functions contain list of ranking function like : rank, dense_rank, row_number etc.
+
+E.g. - 1
+case class Salary(depName: String, empNo: Long, salary: Long)
+val empsalary = Seq(
+  Salary("sales", 1, 5000),
+  Salary("personnel", 2, 3900),
+  Salary("sales", 3, 4800),
+  Salary("sales", 4, 4800),
+  Salary("personnel", 5, 3500),
+  Salary("develop", 7, 4200),
+  Salary("develop", 8, 6000),
+  Salary("develop", 9, 4500),
+  Salary("develop", 10, 5200),
+  Salary("develop", 11, 5200)).toDS
+
+import org.apache.spark.sql.expressions.Window
+scala> val byDepName = Window.partitionBy('depName)                                 // Windows are partitions of deptName
+scala> empsalary.withColumn("avg", avg('salary) over byDepName).show
++---------+-----+------+-----------------+
+|  depName|empNo|salary|              avg|
++---------+-----+------+-----------------+
+|  develop|    7|  4200|           5020.0|
+|  develop|    8|  6000|           5020.0|
+|  develop|    9|  4500|           5020.0|
+|  develop|   10|  5200|           5020.0|
+|  develop|   11|  5200|           5020.0|
+|    sales|    1|  5000|4866.666666666667|
+|    sales|    3|  4800|4866.666666666667|
+|    sales|    4|  4800|4866.666666666667|
+|personnel|    2|  3900|           3700.0|
+|personnel|    5|  3500|           3700.0|
++---------+-----+------+-----------------+
+
+E.g.-2
+val dataset = spark.range(9).withColumn("bucket", 'id % 3)
+
+import org.apache.spark.sql.expressions.Window
+val byBucket = Window.partitionBy('bucket).orderBy('id)
+
+scala> dataset.withColumn("rank", rank over byBucket).show                          // calling rank()
++---+------+----+
+| id|bucket|rank|
++---+------+----+
+|  0|     0|   1|
+|  3|     0|   2|
+|  6|     0|   3|
+|  1|     1|   1|
+|  4|     1|   2|
+|  7|     1|   3|
+|  2|     2|   1|
+|  5|     2|   2|
+|  8|     2|   3|
++---+------+----+
+
+
+Data Skewness in Spark Partitions
+- Joining on a key that is not evenly distributed across the cluster, causing SOME PARTITIONS TO BE LONG and not allowing Spark to process data in parallel.
+Solutions:
+1. BroadcastHashJoin
+    - Increase Threshold with - spark.sql.autoBroadcastJoinThreshold.
+    - Allocate more memory to Executors and Driver( to accomodate Broadcast)
+    - If one of the table in join is small enowugh to fit in memory(both of Driver and Executor) go with BroadcastHashJoin.
+    - E.g. If small table size if 1 GB and we have 100 executors, then total memory consumption after broadcast is - 100 GB ( For executors) + 1 GB (Driver)
+
+val df = spark.read.parquet(“s3://...”)
+val geoDataDf = spark.read.parquet(“s3://...”)
+val userAgentDf = spark.read.parquet(“s3://...”)
+val ownerMetadataDf = spark.read.parquet(“s3://...”)df
+ .join(broadcast(geoDataDf), exprGeo, “left”)                                               // Using Broadcast hint
+ .join(broadcast(userAgentDf), exprUserAgent, “left”)                                       // Using Broadcast hint
+ .join(broadcast(ownerMetadataDf), exprOwnerMetadata, “left”)                               // Using Broadcast hint
+ .write
+ .parquet(“s3://...”)
+
+****
+2. Salting ( Ref link: https://dzone.com/articles/why-your-spark-apps-are-slow-or-failing-part-ii-da)
+- If the join key distribution is not evenly distributed salting will be useful.
+- In case of salting WE GENERATE kind of Program generated keys called as SALT_KEY.
+        Steps;
+        - for big table ADD SOME random values to the join key( name it as SALTED_KEY)
+        - In smaller table we need to REPLICATE the rows to match the random keys
+        - The idea is if the join condition is satisfied by key1 == key1, it should also get satisfied by key1_<salt> = key1_<salt>. 
+        - The value of salt will help the dataset to be more evenly distributed.
+
+Spark Optimization
+- Choose Dataframe/ Spark SQL oevr RDD whereever possible because of Tungsten Engine and Query Optimization.
+- If working with joins, check if join keys are evenely distributed if not go with SALTING
+- If working with joins, if one of table small use BroadcastHashJoin
+- Correct file format : Choose correct file format as per needs. Choose Columnar over Text, JSON etc.
+- Chhose specific columns only instead of select *. Select * in case of Columnar format triggeres Entire table scan.
+- Choose correct number of executors, executor memory, driver memory. Sometime more number of executors work fine for SCATTERED data( Peak data load for 2018)
+- Use specific Queus to submit application instead of Default.
+- Garbage collection ( Ref link: https://dzone.com/articles/why-your-spark-apps-are-slow-or-failing-part-ii-da)
+    - It can be observed on Spark UI, Under executor tab.
+    - Choose optimized data types - Array over List
+    - Built-in vs. User Defined Functions (UDFs) - Built-in functions are more optimized
+    - Avoid creating unwanted objects on JVM
