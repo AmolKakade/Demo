@@ -1,25 +1,206 @@
-Frequently used commands.
-Example
-Actions
-Nodes
-
-https://oozie.apache.org/docs/3.1.3-incubating/DG_Overview.html
-
-
-Ref link:- https://www.interviewgrid.com/interview_questions/bigdata/bigdata_oozie
+Ref links
+https://oozie.apache.org/docs/3.2.0-incubating/WorkflowFunctionalSpec.html
+https://www.interviewgrid.com/interview_questions/bigdata/bigdata_oozie
 
 Oozie
-- Open source, XML based, web based workflow scheduler.
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+- Open source, hPDL (XML Process Definition Language) based, web based workflow scheduler.
+- It's is a Java Web-Application that runs in a Java servlet-container.
 - Componets of Oozie are: Coordinator, workflow, properties files
-- life-cycle : PREP, RUNNING, SUCCEEDED, KILLED, FAILED
-- Oozie will follow DAG and will never have cycle.           **************
-- Control Nodes
-    - Various nodes are START, KILL, END.
-    - Nodes call Actions
-- Actions
-- 
+- Workflow 
+    - Workflow is a collection of actions (i.e. Hadoop Map/Reduce jobs, Pig jobs) arranged in a control dependency DAG. 
+    - Second action can't run until the first action has completed.
+    - Oozie workflow actions start jobs in remote systems - Hadoop, Pig etc.
+    - Upon action completion, the remote systems callback Oozie to notify the action completion
+    - Later on Oozie proceeds to the next action in the workflow.
+    
+Workflow life-cycle
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+- PREP, RUNNING, SUCCEEDED, SUSPENDED, KILLED, FAILED
+- Workflow job state valid transitions:
+    --> PREP
+    PREP --> RUNNING | KILLED
+    RUNNING --> SUSPENDED | SUCCEEDED | KILLED | FAILED
+    SUSPENDED --> RUNNING | KILLED
+
+
+Types of Nodes in Oozie
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+1. Control flow nodes 
+    - These define the beginning and the end of a workflow - start, kill, error
+    - Control flow nodes provides a mechanism to control the workflow execution path - decision , fork and join nodes.
+
+2. Action nodes 
+    - With it workflow triggers the execution of a computation/processing task. 
+    - Oozie provides support for different types of actions: Hadoop map-reduce, fs ( Hadoop HDFS), Pig, SSH, Java, Shell etc. 
+    - Oozie can be extended to support additional type of actions.
+
+
+<workflow-app name='wordcount-wf' xmlns="uri:oozie:workflow:0.1">
+    <start to='wordcount'/>                                                              // Have "to" ATRRIBUTE. Indicates which node to TRANSITION to
+    <action name='wordcount'>
+        <map-reduce>
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <configuration>
+                <property>
+                    <name>mapred.mapper.class</name>
+                    <value>org.myorg.WordCount.Map</value>
+                </property>
+            </configuration>
+        </map-reduce>
+        <ok to='end'/>                                                                  // WHERE "to" TRANSITION on "ok" and "error"
+        <error to='end'/>
+    </action>
+    <kill name='kill'>                                                                   // "name" ATTRIBUTE                                        
+        <message>Something went wrong: ${wf:errorCode('wordcount')}</message>
+    </kill/>
+    <end name='end'/>                                                                    // "name" ATTRIBUTE              
+</workflow-app>
+
+
+
+Start Control Node
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+- The start node is the entry point for a workflow job, it indicates the first workflow node the workflow job must TRANSITION to.
+- When a workflow is started, it automatically transitions to the node specified in the start .
+- A workflow definition must have one start node.
+
+Syntax:
+
+<workflow-app name="[WF-DEF-NAME]" xmlns="uri:oozie:workflow:0.1">
+  ...
+  <start to="[NODE-NAME]"/>                                                     // Has ATRRIBUTE "to"
+  ...
+</workflow-app>
+
+
+End Control Node
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+- The end node is the end for a workflow job, it indicates that the workflow job has COMPLETED SUCCESSFULLY.
+- When a workflow job reaches the end it finishes successfully (SUCCEEDED).
+- If one or more actions started by the workflow job are executing when the end node is reached, the actions will be killed. In this scenario the workflow job is still considered as successfully run.
+- A workflow definition must have one end node.
+
+Syntax:
+
+<workflow-app name="foo-wf" xmlns="uri:oozie:workflow:0.1">
+    ...
+    <end name="end"/>                                                           // Has ATRRIBUTE "name" with predefined value "end"
+</workflow-app>
+
+
+Kill Control Node
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+- The kill node allows a workflow job to kill itself.
+- When a workflow job reaches the kill it finishes in error (KILLED).
+- A workflow definition may have zero or more kill nodes.
+- The NAME ATTRIBUTE in the kill node is the name of the Kill action node.
+- The content of the message element will be logged as the kill reason for the workflow job.
+- A kill node does not have transition elements because it ends the workflow job, as KILLED. *************
+
+Example:
+
+<workflow-app name="foo-wf" xmlns="uri:oozie:workflow:0.1">
+    ...
+    <kill name="killBecauseNoInput">                                          // Has ATRRIBUTE "name" with predefined value "kill"
+        <message>Input unavailable</message>
+    </kill>
+    ...
+</workflow-app>
+
+
+Decision Control Node
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+- A decision node enables a workflow to make a selection on the execution path to follow and is seen as a switch-case statement.
+- A decision node consists of a list of predicates-transition pairs plus a default transition. 
+- Predicates are evaluated IN ORDER or appearance until one of them evaluates to true and the corresponding transition is taken. 
+- If none of the predicates evaluates to true the DEFAULT transition is taken.
+- DEFAULT is MANDOTORY or else workflow will transition to ERROR.    ********
+
+<workflow-app name="foo-wf" xmlns="uri:oozie:workflow:0.1">
+    ...
+    <decision name="mydecision">
+        <switch>
+            <case to="reconsolidatejob">                                                    // "to" ATTRIBUTE
+              ${fs:fileSize(secondjobOutputDir) gt 10 * GB}
+            </case>
+            <case to="rexpandjob">
+              ${fs:filSize(secondjobOutputDir) lt 100 * MB}
+            </case>
+            <case to="recomputejob">
+              ${ hadoop:counters('secondjob')[RECORDS][REDUCE_OUT] lt 1000000 }
+            </case>
+            <default to="end"/>
+        </switch>
+    </decision>
+    ...
+</workflow-app>
+
+
+Fork and Join Control Nodes
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+    - FORK node - SPLITS one path of execution INTO MULTIPLE concurrent paths of execution.
+    - JOIN node - waits until every concurrent execution path of a previous fork node arrives to it.
+    - The fork and join nodes MUST BE USED AS PAIR. 
+    - The JOIN NODE ASSUMES concurrent execution paths are children of the same fork node.
+
+E.g.
+<workflow-app name="sample-wf" xmlns="uri:oozie:workflow:0.1">
+    ...
+    <fork name="forking">                                                   // Define fork "paths"
+        <path start="firstparalleljob"/>                                    // Path has "start" ATTRIBUTE
+        <path start="secondparalleljob"/>
+    </fork>
+    <action name="firstparallejob">
+        <map-reduce>
+            <job-tracker>foo:9001</job-tracker>
+            <name-node>bar:9000</name-node>
+            <job-xml>job1.xml</job-xml>
+        </map-reduce>
+        <ok to="joining"/>                                                  // Transitioned to JOIN
+        <error to="kill"/>
+    </action>
+    <action name="secondparalleljob">
+        <map-reduce>
+            <job-tracker>foo:9001</job-tracker>
+            <name-node>bar:9000</name-node>
+            <job-xml>job2.xml</job-xml>
+        </map-reduce>
+        <ok to="joining"/>                                                  // Transitioned to JOIN
+        <error to="kill"/>
+    </action>
+    <join name="joining" to="nextaction"/>                                  // Waits for all child to complete.
+    ...
+</workflow-app>
+
+
+Action nodes *********
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+- Action nodes are the mechanism by which a workflow triggers the execution of a computation/processing task.
+- Different actions are - map-reduce, fs(HDFS), pig, Java Action, Shell etc.
+- Actions have some important characteristics like
+1. Action Computation/Processing Is Always Remote
+    - All computation/processing tasks triggered by an action node are remote to Oozie.
+2. Actions Are Asynchronous
+    - All computation/processing tasks triggered by an action node are executed asynchronously by Oozie except "fs" which is synchronous
+    - For all other computation/processing tasks triggered by workflow action, the workflow job has to wait until the task completes.
+    - Oozie can detect completion of computation/processing tasks by two different means, CALLBACKS and POLLING.
+    - When a computation/processing tasks is started by Oozie, Oozie provides a unique CALLBACk URL to the task.
+    - The task should invoke the given URL to notify its completion.
+*** - Oozie uses POLLING in case task could not do callback i.e. in case oftransient network failure or any reasosn
+3. Actions Have 2 Transitions, =ok= and =error=
+    - If task triggered by a workflow COMPLETES successfully, it transitions to ok.
+    - If task triggered by a workflow FAILS to complete successfully, its transitions to error.
+*** - If task exits in error, there computation/processing task must provide error-code and error-message information to Oozie.
+4. Action Recovery
+    - Once an action starts successfully Oozie WILL NOT RETRY starting the action if the action FAILS DURING EXECUTION.
+*** - E.g. Hadoop task itself retries from its own, then why Oozie to retry
+    - If the failure is of transient nature, Oozie will perform retries after a pre-defined time interval.
+    - Examples of a transient failures are network problems or a remote system temporary unavailable.
 
 Oozie Metastore
+----------------------------------------------------------------------------------------------------------------------------------------------------------
 - Oozie stores all information about running and completed workflows, coordinators, and bundle jobs are stored in a relational database.
 - By default Oozie supports an embedded PostgreSQL database.
 - However, Cloudera strongly recommends that you use an external database for production systems. WE ARE USING MySQL.
@@ -28,3 +209,50 @@ Oozie Metastore
     - mysql> create database oozie default character set utf8;
     - mysql> grant all privileges on oozie.* to 'oozie'@'localhost' identified by 'oozie';
     - mysql> grant all privileges on oozie.* to 'oozie'@'%' identified by 'oozie';
+
+
+Oozie Coordinator
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+- The Oozie Coordinator system allows the user to define and execute recurrent and interdependent workflow jobs.
+- A coordinator application is a program that triggers actions (commonly workflow jobs) when a set of conditions are met. 
+- Conditions can be a time frequency, the availability of new dataset instances or other external events.
+- Valid coordinator action status transitions are:
+    WAITING --> READY | TIMEDOUT | KILLED
+    READY --> SUBMITTED | KILLED
+    SUBMITTED --> RUNNING | KILLED | FAILED
+    RUNNING --> SUCCEEDED | KILLED | FAILED
+
+E.g.
+<coordinator-app name="hello-coord" frequency="${coord:days(1)}"
+                  start="2009-01-02T08:00Z" end="2009-01-04T08:00Z" timezone="America/Los_Angeles"
+                 xmlns="uri:oozie:coordinator:0.1">
+      <action>
+        <workflow>
+          <app-path>${wf_app_path}</app-path>
+          <configuration>
+              <property>
+              <name>wfInput</name>
+              <value>${coord:dataIn('input')}</value>
+            </property>
+         </configuration>
+       </workflow>
+      </action>
+ </coordinator-app>
+
+
+Oozie commands
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+
+1. RUN workflow/coordinator
+$ oozie job -oozie http://localhost:11000/oozie -config job.properties -run
+job: 15-20090525161321-oozie-joe
+
+2. SUSPEND workflow/coordinator
+oozie job -oozie http://localhost:11000/oozie -suspend 14-20090525161321-oozie-joe
+
+3. RESUME workflow/coordinator
+oozie job -oozie http://localhost:11000/oozie -resume 14-20090525161321-oozie-joe
+
+4. KILL workflow/coordinator
+oozie job -oozie http://localhost:11000/oozie -kill 14-20090525161321-oozie-joe
+
