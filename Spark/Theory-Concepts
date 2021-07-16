@@ -13,3 +13,22 @@ Kryo serialization
     scala> conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
 
 ****** Best link : https://medium.com/onzo-tech/serialization-challenges-with-spark-and-scala-a2287cd51c54
+
+
+Why we need Storage Formats? Avro Vs Parquet Vs ORC?
+https://blog.clairvoyantsoft.com/big-data-file-formats-3fb659903271
+
+Spark ( with ORC, Parquet, Avro, JSON etc)
+https://spark.apache.org/docs/latest/sql-data-sources.html
+
+
+Spark Performance tuning
+- https://spark.apache.org/docs/latest/sql-performance-tuning.html
+
+Benefit of spark.implicits._?
+- Support for Encoders
+- Support for RDD to DF, Dataset conversions etc.
+
+What is SaveMode in spark.write?
+SaveMode.Append, SaveMode.Overwrite, SaveMode.Ignore, SaveMode.errorIfExists( default)
+
