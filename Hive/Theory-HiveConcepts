@@ -8,3 +8,26 @@ ORC Vectorized query execution ( http://allabouthadoop.net/what-is-vectorization
 Parquet Vectorized query execution ( https://blog.cloudera.com/faster-swarms-of-data-accelerating-hive-queries-with-parquet-vectorization/ )
 - Parquet also started suppprting Vectorized query execution in CDH 6 onwards.
 - Only have support for PRIMITIVE TYPES + STRUCT
+
+Hive query execution Architecture? - https://data-flair.training/blogs/apache-hive-architecture/
+
+HCatalog?
+https://cwiki.apache.org/confluence/display/Hive/HCatalog+UsingHCat
+
+Thrift Server?
+
+Hive Metastore?
+
+Hive metastore modes?- embedded, loca;, remote? - https://www.linkedin.com/pulse/hive-metastore-hcatalog-hcat-haotian-zhang/
+
+LLAP?
+
+order by Vs sort by VS cluster by VS distribute by in Hive?
+- https://saurzcode.in/2015/01/hive-sort-order-distribute-cluster/
+
+Indexing? Types of indexes? How to create indexes?
+
+Hive Materialized views
+
+Bucketing? How it works?
+
