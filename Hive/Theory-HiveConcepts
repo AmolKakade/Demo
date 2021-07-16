@@ -1,2 +1,10 @@
 https://www.edureka.co/blog/map-side-join-vs-join/
 https://www.edureka.co/blog/mapreduce-example-reduce-side-join/
+
+
+ORC Vectorized query execution ( http://allabouthadoop.net/what-is-vectorization-in-hive/ )
+-set hive.vectorized.execution.enabled = true;
+
+Parquet Vectorized query execution ( https://blog.cloudera.com/faster-swarms-of-data-accelerating-hive-queries-with-parquet-vectorization/ )
+- Parquet also started suppprting Vectorized query execution in CDH 6 onwards.
+- Only have support for PRIMITIVE TYPES + STRUCT
