@@ -21,9 +21,45 @@ https://blog.clairvoyantsoft.com/big-data-file-formats-3fb659903271
 Spark ( with ORC, Parquet, Avro, JSON etc)
 https://spark.apache.org/docs/latest/sql-data-sources.html
 
+Spark + Avro (spark-avro module) is external 
+https://spark.apache.org/docs/latest/sql-data-sources-avro.html
+- As Spark-avro module is external, there is no .avro API in DataFrameReader or DataFrameWriter. i.e spark.read.avro() or spark.write.avro() ARE NOT THERE.
+- To load/save data in Avro format, you need to specify the data source option format as avro(or org.apache.spark.sql.avro). ************
 
-Spark Performance tuning
+
+Spark SQL Performance tuning
 - https://spark.apache.org/docs/latest/sql-performance-tuning.html
+1. Caching Data In Memory
+- Spark SQL can cache tables using an in-memory columnar format by calling spark.catalog.cacheTable("tableName") OR dataFrame.cache()
+- You can call spark.catalog.uncacheTable("tableName") to remove the table from memory.
+2. Join Strategy Hints for SQL Queries
+- The join strategy hints() - BROADCAST, MERGE, SHUFFLE_HASH and SHUFFLE_REPLICATE_NL, instruct Spark to use the hinted strategy 
+
+    scala> spark.table("src").join(spark.table("records").hint("broadcast"), "key").show()
+
+3. Coalesce/Repartition Hints for SQL Queries
+SELECT /*+ COALESCE(3) */ * FROM t
+SELECT /*+ REPARTITION(3) */ * FROM t
+SELECT /*+ REPARTITION(c) */ * FROM t
+SELECT /*+ REPARTITION(3, c) */ * FROM t
+SELECT /*+ REPARTITION_BY_RANGE(c) */ * FROM t
+SELECT /*+ REPARTITION_BY_RANGE(3, c) */ * FROM t
+
+4. Setting configurations
+- spark.sql.autoBroadcastJoinThreshold 	10485760 (10 MB)
+- spark.sql.shuffle.partitions 	200
+
+5. Adaptive Query Execution
+- AQE is an optimization technique in Spark SQL that makes use of the runtime statistics to choose the most efficient query execution plan. 
+- AQE is disabled by default. 
+
+    scala> spark.sql.adaptive.enabled = true
+
+6. Optimizing Skew Join ( Ref link : https://spark.apache.org/docs/latest/sql-performance-tuning.html)
+spark.sql.adaptive.skewJoin.enabled 	true
+spark.sql.adaptive.skewJoin.skewedPartitionFactor 	5
+spark.sql.adaptive.skewJoin.skewedPartitionThresholdInBytes 	256MB
+
 
 Benefit of spark.implicits._?
 - Support for Encoders
