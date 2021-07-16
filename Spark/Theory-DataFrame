@@ -1,0 +1,103 @@
+- Both DataFrame and Dataset are abstractions on top of RDD.
+
+DataFrame
+- It was introduced first in Spark version 1.3 to overcome the limitations of the Spark RDD.
+- Support for API in Java, Scala, Python, R
+- A DataFrame is a Dataset organized into named columns.
+- Spark Dataframes are the distributed collection of the data which is organized into the named columns.
+- Designed to work in optimized way on STRUCTURED and SEMI_STRUCTURED data.
+- They allow developers to debug the code during the runtime which was not allowed with the RDDs.
+- Dataframes can read and write the data into various formats like CSV, JSON, AVRO, HDFS, and HIVE tables. 
+- Provides large set of optimized pre-processing tasks on huge volume of data.
+- It uses a CATALYST OPTIMZER for optimization purposes.
+
+
+Dataset
+- It was introduced first in Spark version 1.6
+- Support for API in Java, Scala. Python and R can use few features.
+- Extension of Dataframes API with the benefits of both RDDs and the Datasets designed to work with STRUCTURED and SEMI_STRUCTURED.
+- Dataset = ENCODED records with a known SCHEMA
+- Dataset (is a tuple) = ENCODER and QueryExecution (LogicalPlan + SparkSession) 
+- It is fast as well as provides a TYPE-SAFE interface. 
+    safety means - compile time validation of data types of all the columns in the dataset.  Throw an error if there is any mismatch in the data types.
+
+Encoders — Internal Row Converters ( org.apache.spark.sql.Encoders )
+- Encoder is the fundamental concept in the serialization and deserialization (SerDe) framework in Spark SQL 2.0. 
+- Spark SQL uses the SerDe framework for IO to make it efficient time- and space-wise.
+- Encoders are modelled in Spark SQL 2.0 as Encoder[T] trait.
+
+trait Encoder[T] extends Serializable {
+  def schema: StructType
+  def clsTag: ClassTag[T]
+}
+
+- The type "T" stands for the type of records a "Encoder[T]" can deal with.
+- Type "T" can be JVM object or primitive of type "T"
+- Encoders convert ( Type "T" to -> Spark SQL’s InternalRow which is the internal binary row format representation)
+
+
+Query Execution ( Ref link : https://mallikarjuna_g.gitbooks.io/spark/content/spark-sql-query-execution.html#toRDD)
+- QueryExecution is an integral part of a Dataset and represents the query execution that will eventually "produce" the data in a Dataset.
+- Dataset will be computed when toRdd() is called which generates -> RDD[InternalRow].              ******************
+- You can access the QueryExecution of a Dataset using queryExecution attribute.
+
+E.g.
+    scala> val ds = spark.range(5)
+    scala> ds.queryExecution
+     res17: org.apache.spark.sql.execution.QueryExecution =
+    == Parsed Logical Plan ==
+    Range 0, 5, 1, 8, [id#39L]
+
+    == Analyzed Logical Plan ==
+    id: bigint
+    Range 0, 5, 1, 8, [id#39L]
+
+    == Optimized Logical Plan ==
+    Range 0, 5, 1, 8, [id#39L]
+
+    == Physical Plan ==
+    WholeStageCodegen
+    :  +- Range 0, 1, 8, 5, [id#39L]
+
+- It have verious queryExecution has various attributes like;
+ executedPlan - RUNS PHYSICAL plan
+ analyzed - Result of applying the Analyzer's rules to the LogicalPlan (of the QueryExecution).
+    
+SCHEMA ( org.apache.spark.sql.types )
+- A schema is the description of the structure of your data in Dataset
+- A schema is described using StructType.
+- StructType 
+      - collection of StructField objects.
+      - StructType is a Seq[StructField] and therefore all things Seq() apply equally here.
+- StructField -  tuples of names, types, and nullability classifier.
+- It can be implicit (and inferred at runtime) or explicit (and known at compile time).
+
+- Implicit schema
+    val df = Seq((0, s"""hello\tworld"""), (1, "two  spaces inside")).toDF("label", "sentence")
+
+    scala> df.printSchema
+    root
+    |-- label: integer (nullable = false)
+    |-- sentence: string (nullable = true)
+
+    scala> df.schema
+    res0: org.apache.spark.sql.types.StructType = StructType(StructField(label,IntegerType,false), StructField(sentence,StringType,true))
+
+    scala> df.schema("label").dataType
+    res1: org.apache.spark.sql.types.DataType = IntegerType
+
+- Explicit schema
+// Regular/canonycal string representation of SQL types to describe the types in a schema
+import org.apache.spark.sql.types.StructType
+val schemaUntyped = new StructType()
+  .add("a", "int")
+  .add("b", "string")
+- These are inherently untyped at compile type
+
+// it is equivalent to the above expression. Advantage is these types are TYPE-SAFE         *************
+import org.apache.spark.sql.types.{IntegerType, StringType}
+val schemaTyped = new StructType()
+  .add("a", IntegerType)
+  .add("b", StringType)
+
+
