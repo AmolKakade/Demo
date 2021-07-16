@@ -1,4 +1,15 @@
 Serialization ( Ref link: https://spark.apache.org/docs/latest/tuning.html#data-serialization)
-- 
+- Formats that are slow to serialize objects into, or consume a large number of bytes, will greatly slow down the computation. 
+- By DEFAULT, Spark serializes objects using Java’s ObjectOutputStream framework, and can work with any class you create that implements java.io.Serializable. 
+- Java serialization is flexible but often quite slow, and leads to large serialized formats for many classes.
+
+Kryo serialization
+- Spark can also use the Kryo library (version 4) to serialize objects more quickly. 
+- Kryo is significantly faster and more compact than Java serialization (often as much as 10x)
+- This setting configures the serializer used for not only shuffling data between worker nodes but also when serializing RDDs to disk. 
+- The only reason Kryo is not the default is because of the custom registration requirement, but Spark recommends trying it in any network-intensive application. 
+- Since Spark 2.0.0, Spark internally use Kryo serializer when shuffling RDDs with simple types, arrays of simple types, or string type.   *********************
+
+    scala> conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
 
 Best link : https://medium.com/onzo-tech/serialization-challenges-with-spark-and-scala-a2287cd51c54
