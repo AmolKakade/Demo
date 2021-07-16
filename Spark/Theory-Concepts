@@ -26,6 +26,8 @@ https://spark.apache.org/docs/latest/sql-data-sources-avro.html
 - As Spark-avro module is external, there is no .avro API in DataFrameReader or DataFrameWriter. i.e spark.read.avro() or spark.write.avro() ARE NOT THERE.
 - To load/save data in Avro format, you need to specify the data source option format as avro(or org.apache.spark.sql.avro). ************
 
+RDD to Dataframe.                                                                           ********************
+https://sparkbyexamples.com/apache-spark-rdd/convert-spark-rdd-to-dataframe-dataset/
 
 Spark SQL Performance tuning
 - https://spark.apache.org/docs/latest/sql-performance-tuning.html
