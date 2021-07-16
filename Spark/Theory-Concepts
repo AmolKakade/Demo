@@ -12,4 +12,4 @@ Kryo serialization
 
     scala> conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
 
-Best link : https://medium.com/onzo-tech/serialization-challenges-with-spark-and-scala-a2287cd51c54
+****** Best link : https://medium.com/onzo-tech/serialization-challenges-with-spark-and-scala-a2287cd51c54
