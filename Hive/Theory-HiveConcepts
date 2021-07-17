@@ -27,7 +27,22 @@ order by Vs sort by VS cluster by VS distribute by in Hive?
 
 Indexing? Types of indexes? How to create indexes?
 
-Hive Materialized views
+Hive Materialized views? How Rebuild works? Enable rewriting in Materialized views?
+https://docs.cloudera.com/HDPDocuments/HDP3/HDP-3.1.0/using-hiveql/content/hive_using_materialized_views.html
+https://www.adaltas.com/en/2018/05/31/accelerating-query-processing-with-materialized-views-in-apache-hive/
+
 
 Bucketing? How it works?
+
+Hive ACID transactions
+https://docs.cloudera.com/HDPDocuments/HDP3/HDP-3.1.0/using-hiveql/content/hive_3_internals.html
+
+
+Map-Side Join ( Ref link - https://data-flair.training/blogs/map-join-in-hive/ )
+- Also known as Auto Map Join OR Map Side Join OR Broadcast Join etc.
+- select /*+ MAPJOIN(a) */ a.* from passwords a, passwords2 b where a.col0=b.col0 ;
+set hive.auto.convert.join=true;
+set hive.auto.convert.join.noconditionaltask=true;
+set hive.auto.convert.join.noconditionaltask.size=10000000;
+
 
