@@ -1,0 +1,33 @@
+Use case of HBase
+Concepts used in HBase - row key, column family, table name, timestamp, etc.
+HBase read and Write - https://www.corejavaguru.com/bigdata/hbase-tutorial/read-and-write
+What is HBase cell
+Row key generation in HBase
+
+HBase RowKey design - https://ajaygupta-spark.medium.com/design-principles-for-hbase-key-and-rowkey-3016a77fc52d
+What is role of Block Cache - Its if faster reads. Freequently needed data is kept here in Block cache.
+Version in HBASE - https://dwgeek.com/apache-hbase-column-versions-explanations.html/
+
+HBase architecture.  - https://data-flair.training/blogs/hbase-architecture/
+Frameworks use in HBase and role of Zookeeper
+
+Auto Sharding - Splitting of Big Regions for a Region Server into approx equal halves. After split continuous row-keys will be maintained.
+Compactions? - Major and Minor compactions in HBase - HFiles are compacted. Small HFiles are merged together to avoid small files issue.
+ephemeral nodes?
+Deletes in HBase?                                      *************************************
+
+META table
+- Stored on Zookeeper
+- HBase system table 
+- The mapping of Regions and Region Servers is kept in a HBase system table called META 
+- META table has information about which region is responsible for your key
+
+Ephemeral 
+
+CAP theorem                                            **************
+
+Best link for all concepts
+https://hbase.apache.org/book.html#_introduction
+
+HBase Hive Integration?                               *************************************
+Apache Phoenix                                        *************************************
