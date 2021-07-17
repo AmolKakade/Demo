@@ -12,7 +12,7 @@ HDFS
 - Its storage tier of Hadoop framework
 
 1. NameNode(Master)
-- Stores the METADAT of Hadoop System - FILES and DataNode node info
+- Stores the METADATA of Hadoop System - FILES and DataNode node info
 FILES Details:::
   - How many files are stored on HDFS
   - In how many blocks those files are stored
