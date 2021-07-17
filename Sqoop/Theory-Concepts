@@ -1,1 +1,5 @@
 https://www.dezyre.com/hadoop-tutorial/hadoop-sqoop-tutorial
+
+
+How to manage the --last-value in --incremnetal ( Last option from Durga Gadiraju is best)
+https://stackoverflow.com/questions/34771407/how-can-we-automate-incremental-import-in-sqoop
