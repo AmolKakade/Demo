@@ -17,7 +17,7 @@ FILES Details:::
   - How many files are stored on HDFS
   - In how many blocks those files are stored
   - For each block, on which DataNodes replicas are stored
-  - At what time thos ereplicas are stored.
+  - At what time those replicas are stored.
   - Storage location of each block
 
 DataNode Details:::
@@ -32,7 +32,7 @@ SOME Important Responsibilities:::
 METADATA 
 Metadata = FSImage + EditLogs 
 - FSImage - It is Snapshot of HDFS file system stored In Main memory of Master node. It is also backed up on Hard Disk of Master Node.
-- EditLogs - It stores all the DELTA changes happend to HDFS after last restart of Cluster. This grows big we do not restart Cluster in long Time
+- EditLogs - It stores all the DELTA changes happened to HDFS after last restart of Cluster. This grows big we do not restart Cluster in long Time
 
 What happens during Restart of cluster
 - All EditLogs will be merged to FSImage
@@ -40,7 +40,7 @@ What happens during Restart of cluster
 - New empty EditLogs will be created.
 
 2. DataNode(Slave)
-  - Stores actual data on machine (64 MB block)
+  - Stores actual data on machine (128 MB block)
 
 3. Secondary NameNode
 - Its Helper of Namenode NOT A BACKUP of NameNode.
@@ -60,7 +60,7 @@ What happens during Restart of cluster
  - It is almost similar to Secondary NameNode operationwise.
  - The only difference is checkpoint node directly uploads MERGED FSImage to NameNode where as Secondary NameNode doesn't have FSImage upload feature to NameNode.
  - Secondary NameNode MERGED FSImage is copied back to local storage on Secondary NameNode and used during reboot process.
-- Multiple checkpoint nodes may be specified in the cluster configuration file.
+ - Multiple checkpoint nodes may be specified in the cluster configuration file.
             dfs.namenode.backup.address
             dfs.namenode.backup.http-address
             
