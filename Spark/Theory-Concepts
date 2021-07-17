@@ -73,3 +73,5 @@ Benefit of spark.implicits._?
 What is SaveMode in spark.write?
 SaveMode.Append, SaveMode.Overwrite, SaveMode.Ignore, SaveMode.errorIfExists( default)
 
+
+Spark thrift server?
